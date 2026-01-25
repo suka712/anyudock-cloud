@@ -7,5 +7,7 @@ const required = (key: string) => {
 }
 
 export const env = {
-  PORT: Number(required('PORT'))
+  PORT: Number(required('PORT')),
+  ADMIN_PASSWORD: required('ADMIN_PASSWORD'),
+  ADMIN_USERNAME: required('ADMIN_USERNAME')
 }
