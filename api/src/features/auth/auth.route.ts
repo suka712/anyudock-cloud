@@ -1,17 +1,16 @@
 import { Hono } from "hono";
 import { env } from "../../env.js";
+import { sign } from "hono/jwt";
 
 export const authRouter = new Hono()
 
 authRouter.post('/login', async (c) => {
-  const body = await c.req.json()
-
-  const password = body.password
-  const username = body.username
+  const {username, password} = await c.req.json()
 
   if (password !== env.ADMIN_PASSWORD || username !== env.ADMIN_USERNAME) {
-    c.json({ message: 'invalid username or password' })
+    return c.json({ message: 'invalid username or password' }, 401)
   }
 
-  return c.json({ message: 'logged in successfully' })
+  const token = await sign({ user: username }, env.JWT_SECRET)
+  return c.json({ token })
 })
