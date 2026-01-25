@@ -3,8 +3,13 @@ import { Hono } from 'hono'
 import { env } from './env.js'
 import { healthRouter } from './features/health/health.route.js'
 import { authRouter } from './features/auth/auth.route.js'
+import { cors } from 'hono/cors'
 
 const app = new Hono()
+
+app.use('*', cors({
+  origin: ['http://localhost:3000']
+}))
 
 app.route('/health', healthRouter)
 app.route('/auth', authRouter)
