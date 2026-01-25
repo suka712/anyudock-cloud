@@ -8,7 +8,7 @@ import { cors } from 'hono/cors'
 const app = new Hono()
 
 app.use('*', cors({
-  origin: ['http://localhost:3000']
+  origin: ['http://localhost:3000', 'https://anyudock.cloud']
 }))
 
 app.route('/health', healthRouter)
