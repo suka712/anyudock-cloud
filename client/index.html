@@ -11,7 +11,7 @@
     <input type="password" id="password" placeholder="password">
     <button onclick="handleLogin()">Login</button>
   </div>
-  <div id="success-message" style="display: none;">Login successful</div>
+  <div id="success-message" style="display: none">Login successfuk</div>
 
   <script>
     const BACKEND_URL = 'http://localhost:8080'
@@ -40,8 +40,13 @@
         document.getElementById('login-form').style.display = 'none'
         document.getElementById('success-message').style.display = 'block'
       } catch (e) {
-        console.log('Failed to login')
+        console.log('Failed to login:', e)
       }
+    }
+
+    if (localStorage.getItem('token')) {
+      document.getElementById('login-form').style.display = 'none'
+      document.getElementById('success-message').style.display = 'block'
     }
   </script>
 </body>
