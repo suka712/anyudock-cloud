@@ -2,51 +2,21 @@
 
 <head>
   <title>AnyuDock - Simple dev storage</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+    rel="stylesheet">
 </head>
 
 <body>
   <h1>AnyuDock</h1>
-  <div id="login-form">
-    <input type="text" id="username" placeholder="username">
-    <input type="password" id="password" placeholder="password">
-    <button onclick="handleLogin()">Login</button>
-  </div>
-  <div id="success-message" style="display: none">Login successfuk</div>
+  <form id="login-form">
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="login-button" onclick="handleLogin()">Login</button>
+  </form>
+  <div id="success-message" style="display: none">Login successful</div>
 
-  <script>
-    const BACKEND_URL = 'http://localhost:8080'
-
-    const login = async (username, password) => {
-      const response = await fetch(`${BACKEND_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      })
-
-      if (!response.ok) {
-        throw new Error('login failed')
-      }
-
-      const data = await response.json()
-      localStorage.setItem('token', data.token)
-    }
-
-    const handleLogin = async () => {
-      const username = document.getElementById('username').value
-      const password = document.getElementById('password').value
-
-      try {
-        await login(username, password)
-        document.getElementById('login-form').style.display = 'none'
-        document.getElementById('success-message').style.display = 'block'
-      } catch (e) {
-        console.log('Failed to login:', e)
-      }
-    }
-
-    if (localStorage.getItem('token')) {
-      document.getElementById('login-form').style.display = 'none'
-      document.getElementById('success-message').style.display = 'block'
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
