@@ -59,7 +59,7 @@ dropzone.addEventListener('drop', (e) => {
   if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0])
 })
 
-async function uploadFile(file) {
+const uploadFile = async (file) => {
   const formData = new FormData()
   formData.append('file', file)
 
@@ -69,11 +69,25 @@ async function uploadFile(file) {
   loadFiles()
 }
 
-async function loadFiles() {
+const loadFiles = async () => {
   const res = await fetch(`${config.BACKEND_URL}/file`)
   const files = await res.json()
   const list = document.getElementById('file-list')
-  list.innerHTML = files.map(f => `<div class="file-item">${f.key}</div>`).join('')
+  list.innerHTML = files.map(f =>
+    `<div class="file-item"
+        onclick="downloadFile('${f.key}')">${f.key}
+        style=""
+    </div>`
+  ).join('')
 }
 
-if (localStorage.getItem('token')) loadFiles()
+if (localStorage.getItem('token')) {
+  loadFiles()
+}
+
+window.downloadFile = async (key) => {
+  const res = await fetch(`${config.BACKEND_URL}/file/${key}/url`)
+  const { url } = await res.json()
+
+  window.open(url)
+}

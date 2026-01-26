@@ -6,7 +6,7 @@
 
 body {
   font-family: "JetBrains Mono", monospace;
-  background: #e5f6ff;
+  background: #ebf8ff;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -105,4 +105,9 @@ button:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.file-item:hover {
+  color: #3384e0;
+  cursor: pointer;
 }

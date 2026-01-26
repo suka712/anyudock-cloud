@@ -34,3 +34,9 @@ fileRouter.get('/', async (c) => {
   const result = await S3Client.list(null, credentials)
   return c.json(result.contents)
 })
+
+fileRouter.get('/:key/url', (c) => {
+  const key = c.req.param('key')
+  const url = S3Client.presign(key, credentials)
+  return c.json({ url })
+})
