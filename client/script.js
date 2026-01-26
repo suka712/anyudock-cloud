@@ -32,5 +32,5 @@ document.getElementById('login-button').addEventListener('click', handleLogin)
 
 if (localStorage.getItem('token')) {
   document.getElementById('login-form').style.display = 'none'
-  document.getElementById('success-message').style.display = 'block'
+  document.getElementById('dashboard').style.display = 'block'
 }

@@ -50,7 +50,7 @@ button {
 button:hover {
   background: #2a8af0;
 }
-#success-message {
+#dashboard {
   background: #fff;
   padding: 32px;
   border-radius: 8px;
