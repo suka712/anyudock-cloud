@@ -64,6 +64,8 @@ button:hover {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   color: #3b3b3b;
+  text-align: center;
+  width: fit-content;
 }
 
 #dropzone {
@@ -93,11 +95,14 @@ button:hover {
   margin-top: 16px;
   max-height: 200px;
   overflow-y: auto;
+  width: 140px;
 }
 
 .file-item {
   padding: 8px;
   border-bottom: 1px solid #eee;
   font-size: 12px;
-  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
