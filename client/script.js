@@ -22,7 +22,7 @@ const handleLogin = async () => {
   try {
     await login(username, password)
     document.getElementById('login-form').style.display = 'none'
-    document.getElementById('success-message').style.display = 'block'
+    document.getElementById('dashboard').style.display = 'block'
   } catch (e) {
     console.log('Failed to login:', e)
   }
