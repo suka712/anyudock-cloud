@@ -3,6 +3,7 @@
   margin: 0;
   padding: 0;
 }
+
 body {
   font-family: "JetBrains Mono", monospace;
   background: #e5f6ff;
@@ -12,20 +13,23 @@ body {
   align-items: center;
   justify-content: center;
 }
+
 h1 {
   color: #333;
   margin-bottom: 24px;
 }
+
 #login-form {
   background: #fff;
   padding: 32px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 300px;
 }
+
 input {
   padding: 12px;
   border: 1px solid #ddd;
@@ -33,10 +37,12 @@ input {
   font-size: 14px;
   font-family: inherit;
 }
+
 input:focus {
   outline: none;
   border-color: #4a90d9;
 }
+
 button {
   padding: 12px;
   background: #4ca1fc;
@@ -47,13 +53,38 @@ button {
   cursor: pointer;
   font-family: inherit;
 }
+
 button:hover {
   background: #2a8af0;
 }
+
 #dashboard {
   background: #fff;
   padding: 32px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   color: #3b3b3b;
+}
+
+#dropzone {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  border: 1.5px dashed #464646;
+  border-radius: 10px;
+}
+
+#dropzone:hover {
+  color: #3384e0;
+  border-color: #3384e0;
+  cursor: pointer;
+}
+
+#dropzone.dragging {
+  color: #3384e0;
+  border-color: #3384e0;
+  cursor: pointer;
 }
