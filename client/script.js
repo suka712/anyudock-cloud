@@ -63,7 +63,7 @@ async function uploadFile(file) {
   const formData = new FormData()
   formData.append('file', file)
 
-  const res = await fetch(`${config.BACKEND_URL}/upload`, { method: 'POST', body: formData })
+  const res = await fetch(`${config.BACKEND_URL}/file`, { method: 'POST', body: formData })
   const data = await res.json()
   console.log('Uploaded:', data.url)
 }
