@@ -6,7 +6,7 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node", "bun"
     ],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
