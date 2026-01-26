@@ -66,4 +66,14 @@ async function uploadFile(file) {
   const res = await fetch(`${config.BACKEND_URL}/file`, { method: 'POST', body: formData })
   const data = await res.json()
   console.log('Uploaded:', data.url)
+  loadFiles()
 }
+
+async function loadFiles() {
+  const res = await fetch(`${config.BACKEND_URL}/file`)
+  const files = await res.json()
+  const list = document.getElementById('file-list')
+  list.innerHTML = files.map(f => `<div class="file-item">${f.key}</div>`).join('')
+}
+
+if (localStorage.getItem('token')) loadFiles()

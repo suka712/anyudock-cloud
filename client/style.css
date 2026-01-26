@@ -88,3 +88,16 @@ button:hover {
   border-color: #3384e0;
   cursor: pointer;
 }
+
+#file-list {
+  margin-top: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.file-item {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+  word-break: break-all;
+}
