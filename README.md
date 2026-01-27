@@ -34,7 +34,7 @@ bun run dev
 
 Open `client/index.html` in your browser. Update `client/config.js` with your backend URL if needed.
 
-Serve the backend through `localhost:3000` with 
+Serve the frontend through `localhost:3000` with 
 ```bash
 bun x serve
 ```
