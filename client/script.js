@@ -35,7 +35,7 @@ if (localStorage.getItem('token')) {
   document.getElementById('dashboard').style.display = 'block'
 }
 
-// 
+// --------------------------Download--------------------------
 
 const dropzone = document.getElementById('dropzone')
 const fileInput = document.getElementById('fileInput')
@@ -74,9 +74,8 @@ const loadFiles = async () => {
   const files = await res.json()
   const list = document.getElementById('file-list')
   list.innerHTML = files.map(f =>
-    `<div class="file-item"
-        onclick="downloadFile('${f.key}')">${f.key}
-        style=""
+    `<div class="file-item" onclick="downloadFile('${f.key}')">
+      ${f.key}
     </div>`
   ).join('')
 }
@@ -86,7 +85,7 @@ if (localStorage.getItem('token')) {
 }
 
 window.downloadFile = async (key) => {
-  const res = await fetch(`${config.BACKEND_URL}/file/${key}/url`)
+  const res = await fetch(`${config.BACKEND_URL}/file/${key}`)
   const { url } = await res.json()
 
   window.open(url)
