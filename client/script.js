@@ -63,14 +63,20 @@ const uploadFile = async (file) => {
   const formData = new FormData()
   formData.append('file', file)
 
-  const res = await fetch(`${config.BACKEND_URL}/file`, { method: 'POST', body: formData })
+  const res = await fetch(`${config.BACKEND_URL}/file`, {
+    method: 'POST',
+    body: formData,
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  })
   const data = await res.json()
   console.log('Uploaded:', data.url)
   loadFiles()
 }
 
 const loadFiles = async () => {
-  const res = await fetch(`${config.BACKEND_URL}/file`)
+  const res = await fetch(`${config.BACKEND_URL}/file`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  })
   const files = await res.json()
   const list = document.getElementById('file-list')
   list.innerHTML = files.map(f =>
@@ -85,7 +91,9 @@ if (localStorage.getItem('token')) {
 }
 
 window.downloadFile = async (key) => {
-  const res = await fetch(`${config.BACKEND_URL}/file/${key}`)
+  const res = await fetch(`${config.BACKEND_URL}/file/${key}`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  })
   const { url } = await res.json()
 
   window.open(url)

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
-import { env } from "../../env.js";
+import { env } from "../../env.ts";
 import { S3Client } from "bun";
+import { authMiddleware } from "../../middlewares/auth.middleware.ts";
 
 const credentials = {
   accessKeyId: env.S3_ACCESS_KEY_ID,
@@ -11,7 +12,7 @@ const credentials = {
 
 export const fileRouter = new Hono()
 
-fileRouter.post('/', async (c) => {
+fileRouter.post('/', authMiddleware, async (c) => {
   try {
     const formData = await c.req.formData()
     const file = formData.get('file') as File
@@ -30,12 +31,12 @@ fileRouter.post('/', async (c) => {
   }
 })
 
-fileRouter.get('/', async (c) => {
+fileRouter.get('/', authMiddleware, async (c) => {
   const result = await S3Client.list(null, credentials)
   return c.json(result.contents)
 })
 
-fileRouter.get('/:key', (c) => {
+fileRouter.get('/:key', authMiddleware, (c) => {
   const key = c.req.param('key')
   const url = S3Client.presign(key, credentials)
   return c.json({ url })

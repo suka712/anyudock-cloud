@@ -1,10 +1,10 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { env } from './env.js'
-import { healthRouter } from './features/health/health.route.js'
-import { authRouter } from './features/auth/auth.route.js'
+import { env } from './env.ts'
+import { healthRouter } from './features/health/health.route.ts'
+import { authRouter } from './features/auth/auth.route.ts'
 import { cors } from 'hono/cors'
-import { fileRouter } from './features/file/files.route.js'
+import { fileRouter } from './features/file/files.route.ts'
 
 const app = new Hono()
 

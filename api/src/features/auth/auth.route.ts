@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { env } from "../../env.js";
+import { env } from "../../env.ts";
 import { sign } from "hono/jwt";
 
 export const authRouter = new Hono()
@@ -11,6 +11,6 @@ authRouter.post('/login', async (c) => {
     return c.json({ message: 'invalid username or password' }, 401)
   }
 
-  const token = await sign({ user: username }, env.JWT_SECRET)
+  const token = await sign({ user: username }, env.JWT_SECRET, 'HS256')
   return c.json({ token })
 })
