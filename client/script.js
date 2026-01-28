@@ -130,11 +130,13 @@ window.deleteFile = async (key) => {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
-    console.log('Deleted file:', key)
-
+    
     if (!res.ok) {
       throw new Error(`Failed to deletefile: ${res.status}`)
     }
+
+    console.log('Deleted file:', key)
+    loadFiles()
   } catch (e) {
     console.log('Failed to delete file:', e)
   }
