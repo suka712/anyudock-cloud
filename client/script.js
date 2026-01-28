@@ -13,6 +13,8 @@ const login = async (username, password) => {
 
   const data = await response.json()
   localStorage.setItem('token', data.token)
+
+  loadFiles()
 }
 
 const handleLogin = async () => {
@@ -74,42 +76,50 @@ const uploadFile = async (file) => {
 }
 
 const loadFiles = async () => {
-  document.getElementById('fileLoadingMessage').style.display = 'block'
-
-  const res = await fetch(`${config.BACKEND_URL}/file`, {
-    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-  })
-
-  let files
   try {
-    files = await res.json()
+    document.getElementById('fileEmptyMessage').style.display = 'none'
+    document.getElementById('fileLoadingMessage').style.display = 'block'
+  
+    const res = await fetch(`${config.BACKEND_URL}/file`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    }) /////////////////////// FAIL 2
+  
+    if (!res.ok || !res) {
+      throw new Error('fail to fetch file')
+    }
+
+    console.log(`SHAPE OF res:`, res)
+    
+    let files = await res.json()
+
+    if (files.length === 0) {
+      document.getElementById('fileLoadingMessage').style.display = 'none'
+      document.getElementById('fileEmptyMessage').style.display = 'block'
+      return
+    } 
+  
+    document.getElementById('fileList').innerHTML = files.map(f =>
+      `
+        <div class="file-item">
+          <svg class="delete-button" onclick="deleteFile('${f.key}')" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-icon lucide-trash">
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+            <path d="M3 6h18" />
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+          <div class="file-name" onclick="downloadFile('${f.key}')">
+            ${String(f.key).split('-').at(-1)}
+          </div>
+        </div>
+        `
+    ).join('')
+    document.getElementById('fileLoadingMessage').style.display = 'none'
+    document.getElementById('fileEmptyMessage').style.display = 'none'
   } catch (e) {
+    console.log('Failed to load file - default to empty:', e)
+    document.getElementById('fileList').innerHTML = ''
     document.getElementById('fileLoadingMessage').style.display = 'none'
     document.getElementById('fileEmptyMessage').style.display = 'block'
-    return
   }
-
-  const list = document.getElementById('fileList')
-  list.innerHTML = files.map(f =>
-    `
-    <div class="file-item">
-    <svg class="delete-button" onclick="deleteFile('${f.key}')" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-icon lucide-trash">
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-      <path d="M3 6h18" />
-      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-    <div class="file-name" onclick="downloadFile('${f.key}')">
-      ${String(f.key).split('-').at(-1)}
-    </div>
-    </div>
-    `
-  ).join('')
-  document.getElementById('fileLoadingMessage').style.display = 'none'
-  document.getElementById('fileEmptyMessage').style.display = 'none'
-}
-
-if (localStorage.getItem('token')) {
-  loadFiles()
 }
 
 window.downloadFile = async (key) => {
@@ -134,14 +144,18 @@ window.deleteFile = async (key) => {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
-    
+
     if (!res.ok) {
       throw new Error(`Failed to deletefile: ${res.status}`)
     }
 
     console.log('Deleted file:', key)
-    loadFiles()
+    await loadFiles()
   } catch (e) {
     console.log('Failed to delete file:', e)
   }
+}
+
+if (localStorage.getItem('token')) {
+  loadFiles()
 }

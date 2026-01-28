@@ -12,7 +12,7 @@ export const authMiddleware = createMiddleware(async (c, next) => {
   const token = header.slice(7)
 
   try {
-    const payload = await verify(token, env.JWT_SECRET, { alg: 'HS256' })
+    await verify(token, env.JWT_SECRET, { alg: 'HS256' })
     await next()
   } catch (e) {
     return c.json({ error: 'Invalid token' }, 401)

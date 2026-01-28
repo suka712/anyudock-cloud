@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { env } from "../../env.ts";
 import { S3Client } from "bun";
 import { authMiddleware } from "../../middlewares/auth.middleware.ts";
-import { json } from "stream/consumers";
 
 const credentials = {
   accessKeyId: env.S3_ACCESS_KEY_ID,
@@ -36,7 +35,7 @@ fileRouter.post('/', authMiddleware, async (c) => {
 
 fileRouter.get('/', authMiddleware, async (c) => {
   const result = await S3Client.list(null, credentials)
-  return c.json(result.contents)
+  return c.json(result.contents ?? [])
 })
 
 fileRouter.get('/:key', authMiddleware, (c) => {
