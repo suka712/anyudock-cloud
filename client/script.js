@@ -78,12 +78,13 @@ const loadFiles = async () => {
     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
   })
   const files = await res.json()
-  const list = document.getElementById('file-list')
+  const list = document.getElementById('fileList')
   list.innerHTML = files.map(f =>
     `<div class="file-item" onclick="downloadFile('${f.key}')">
       ${f.key}
     </div>`
   ).join('')
+  document.getElementById('fileLoadingMessage').style.display = 'none'
 }
 
 if (localStorage.getItem('token')) {

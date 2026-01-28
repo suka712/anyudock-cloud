@@ -91,7 +91,12 @@ button:hover {
   cursor: pointer;
 }
 
-#file-list {
+#fileLoadingMessage {
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+#fileList {
   margin-top: 16px;
   max-height: 200px;
   overflow-y: auto;
@@ -100,8 +105,8 @@ button:hover {
 
 .file-item {
   padding: 8px;
-  border-bottom: 1px solid #eee;
-  font-size: 12px;
+  border-bottom: 1px solid #d5d5d5;
+  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
