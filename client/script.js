@@ -113,6 +113,10 @@ if (localStorage.getItem('token')) {
 }
 
 window.downloadFile = async (key) => {
+  if (!key) {
+    console.log('Download failed', res.status)
+    return
+  }
   const res = await fetch(`${config.BACKEND_URL}/file/${key}`, {
     method: 'GET',
     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
