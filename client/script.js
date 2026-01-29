@@ -32,12 +32,7 @@ const handleLogin = async () => {
 
 document.getElementById('login-button').addEventListener('click', handleLogin)
 
-if (localStorage.getItem('token')) {
-  document.getElementById('login-form').style.display = 'none'
-  document.getElementById('dashboard').style.display = 'block'
-}
-
-// --------------------------Download--------------------------
+// --------------------------Drag & Drop--------------------------
 
 const dropzone = document.getElementById('dropzone')
 const fileInput = document.getElementById('fileInput')
@@ -60,6 +55,8 @@ dropzone.addEventListener('drop', (e) => {
   dropzone.classList.remove('dragging')
   if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0])
 })
+
+// --------------------------Features--------------------------
 
 const uploadFile = async (file) => {
   const formData = new FormData()
@@ -159,6 +156,10 @@ window.deleteFile = async (key) => {
   }
 }
 
+// --------------------------First load--------------------------
+
 if (localStorage.getItem('token')) {
+  document.getElementById('login-form').style.display = 'none'
+  document.getElementById('dashboard').style.display = 'block'
   loadFiles()
 }
