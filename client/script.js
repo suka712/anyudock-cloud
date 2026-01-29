@@ -77,22 +77,23 @@ const uploadFile = async (file) => {
 
 const loadFiles = async () => {
   try {
+    console.log('loadFiles started running')
+
     document.getElementById('fileEmptyMessage').style.display = 'none'
     document.getElementById('fileLoadingMessage').style.display = 'block'
   
     const res = await fetch(`${config.BACKEND_URL}/file`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    }) /////////////////////// FAIL 2
+    })
   
     if (!res.ok || !res) {
       throw new Error('fail to fetch file')
     }
-
-    console.log(`SHAPE OF res:`, res)
     
     let files = await res.json()
-
     if (files.length === 0) {
+      console.log('loadFiles detected empty file list')
+      document.getElementById('fileList').innerHTML = ''
       document.getElementById('fileLoadingMessage').style.display = 'none'
       document.getElementById('fileEmptyMessage').style.display = 'block'
       return
@@ -114,11 +115,13 @@ const loadFiles = async () => {
     ).join('')
     document.getElementById('fileLoadingMessage').style.display = 'none'
     document.getElementById('fileEmptyMessage').style.display = 'none'
+    console.log('loadFiles ran successfully')
   } catch (e) {
     console.log('Failed to load file - default to empty:', e)
     document.getElementById('fileList').innerHTML = ''
     document.getElementById('fileLoadingMessage').style.display = 'none'
     document.getElementById('fileEmptyMessage').style.display = 'block'
+    console.log('loadFiles errored out')
   }
 }
 
@@ -150,7 +153,7 @@ window.deleteFile = async (key) => {
     }
 
     console.log('Deleted file:', key)
-    await loadFiles()
+    loadFiles()
   } catch (e) {
     console.log('Failed to delete file:', e)
   }
