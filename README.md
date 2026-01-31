@@ -1,4 +1,6 @@
-# AnyuDock S3 Setup
+# AnyuDock (暗语-Dock) S3 Setup
+
+Pronounced ànyǔ (ahn-yoo)
 
 Simple S3 file storage for sharing files and env configs between machines.
 
