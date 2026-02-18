@@ -1,4 +1,4 @@
-# AnyuDock (暗语-Dock) S3 Setup
+# AnyuS3 (暗语-S3) Setup
 
 Pronounced ànyǔ (ahn-yoo)
 
