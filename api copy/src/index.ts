@@ -15,7 +15,7 @@ app.use('*', cors({
 app.route('/health', healthRouter)
 app.route('/auth', authRouter)
 app.route('/file', fileRouter)
-// hello
+
 serve({
   fetch: app.fetch,
   port: env.PORT
