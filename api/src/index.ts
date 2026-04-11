@@ -9,7 +9,8 @@ import { fileRouter } from './features/file/files.route.ts'
 const app = new Hono()
 
 app.use('*', cors({
-  origin: ['http://localhost:3000', 'https://anyudock.cloud']
+  origin: ['http://localhost:3000', 'https://anyudock.cloud'],
+  credentials: true,
 }))
 
 app.route('/health', healthRouter)

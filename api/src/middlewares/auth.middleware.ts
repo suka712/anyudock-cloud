@@ -1,20 +1,20 @@
-import { verify } from "hono/jwt";
-import { createMiddleware } from "hono/factory";
-import { env } from "../env.ts";
+import { verify } from 'hono/jwt'
+import { getCookie } from 'hono/cookie'
+import { createMiddleware } from 'hono/factory'
+import { env } from '../env.ts'
 
 export const authMiddleware = createMiddleware(async (c, next) => {
-  const header = c.req.header('Authorization')
+  const token = getCookie(c, 'session')
 
-  if (!header?.startsWith('Bearer ')) {
+  if (!token) {
     return c.json({ error: 'Unauthorized' }, 401)
   }
 
-  const token = header.slice(7)
-
   try {
-    await verify(token, env.JWT_SECRET, { alg: 'HS256' })
+    const payload = await verify(token, env.JWT_SECRET, 'HS256')
+    c.set('user', payload)
     await next()
-  } catch (e) {
+  } catch {
     return c.json({ error: 'Invalid token' }, 401)
   }
 })

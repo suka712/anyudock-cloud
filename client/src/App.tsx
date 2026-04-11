@@ -1,39 +1,35 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APITester } from "./APITester";
-import "./index.css";
-
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
+import { useNavigate } from '@tanstack/react-router'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { api } from '@/lib/api'
+import './index.css'
 
 export function App() {
+  const navigate = useNavigate()
+
+  async function handleSignOut() {
+    await api('/auth/signout', { method: 'POST' })
+    navigate({ to: '/signin' })
+  }
+
   return (
-    <div className="container mx-auto p-8 text-center relative z-10">
-      <div className="flex justify-center items-center gap-8 mb-8">
-        <img
-          src={logo}
-          alt="Bun Logo"
-          className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#646cffaa] scale-120"
-        />
-        <img
-          src={reactLogo}
-          alt="React Logo"
-          className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#61dafbaa] [animation:spin_20s_linear_infinite]"
-        />
+    <div className="container mx-auto p-8">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-bold">Anyu Dock</h1>
+        <Button variant="outline" onClick={handleSignOut}>
+          Sign out
+        </Button>
       </div>
       <Card>
-        <CardHeader className="gap-4">
-          <CardTitle className="text-3xl font-bold">Bun + React</CardTitle>
-          <CardDescription>
-            Edit <code className="rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono">src/App.tsx</code> and save to
-            test HMR
-          </CardDescription>
+        <CardHeader>
+          <CardTitle>Files</CardTitle>
         </CardHeader>
         <CardContent>
-          <APITester />
+          <p className="text-muted-foreground">File management goes here.</p>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
