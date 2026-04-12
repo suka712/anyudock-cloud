@@ -57,7 +57,7 @@ export function APITester() {
         id="response"
         readOnly
         placeholder="Response will appear here..."
-        className="min-h-[140px] font-mono resize-y"
+        className="min-h-35 font-mono resize-y"
       />
     </div>
   );
