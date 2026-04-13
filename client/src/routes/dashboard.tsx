@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import '../index.css'
 
-const Index = () => {
+const Dashboard = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -37,10 +37,10 @@ const Index = () => {
   )
 }
 
-export const indexRoute = createRoute({
+export const dashRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
-  component: Index,
+  path: '/dashboard',
+  component: Dashboard,
   beforeLoad: async ({ context }) => {
     try {
       await context.queryClient.ensureQueryData(authQueryOptions)

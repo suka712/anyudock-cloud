@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
 import { rootRoute } from './routes/root'
-import { indexRoute } from './routes/index'
+import { indexRoute } from './routes/dashboard'
 import { signinRoute } from './routes/signin'
 import { verifyRoute } from './routes/verify'
 

@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 
 type VerifySearch = { email: string }
 
-function Verify() {
+const Verify = () => {
   const { email } = verifyRoute.useSearch()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
