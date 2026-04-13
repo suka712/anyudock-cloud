@@ -1,7 +1,7 @@
 import { verify } from 'hono/jwt'
 import { getCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
-import { env } from '../env.ts'
+import { env } from '../utils/env.ts'
 
 export const authMiddleware = createMiddleware(async (c, next) => {
   const token = getCookie(c, 'session')

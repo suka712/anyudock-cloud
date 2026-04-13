@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { sign, verify } from 'hono/jwt'
 import { setCookie, getCookie, deleteCookie } from 'hono/cookie'
 import { eq, and, gt } from 'drizzle-orm'
-import { env } from '../../env.ts'
+import { env } from '../../utils/env.ts'
 import { db } from '../../db/index.ts'
 import { users, otpCodes } from '../../db/schema.ts'
 import { Resend } from 'resend'
@@ -32,12 +32,11 @@ authRouter.post('/send-otp', async (c) => {
   const { email } = await c.req.json<{ email: string }>()
 
   if (!email || !email.includes('@')) {
-    return c.json({ error: 'Valid email is required' }, 400)
+    return c.json({ error: 'Invalid email' }, 400)
   }
 
   const normalizedEmail = email.toLowerCase().trim()
 
-  // Rate limit: reject if an unexpired, unused OTP already exists for this email
   const existing = await db
     .select({ id: otpCodes.id })
     .from(otpCodes)
@@ -63,12 +62,19 @@ authRouter.post('/send-otp', async (c) => {
     expiresAt,
   })
 
-  await resend.emails.send({
-    from: 'Anyu Dock <noreply@anyudock.cloud>',
+  const { error: emailError } = await resend.emails.send({
+    from: 'AnyuDock <noreply@anyudock.cloud>',
     to: normalizedEmail,
-    subject: 'Your sign-in code',
+    subject: 'Your Sign in Code',
     html: `<p>Your verification code is: <strong>${code}</strong></p><p>This code expires in ${OTP_EXPIRY_MINUTES} minutes.</p>`,
   })
+
+  if (emailError) {
+    console.error('Failed to send email:', emailError)
+    return c.json({ error: 'Failed to send code' }, 500)
+  }
+
+  console.log('Code sent')
 
   return c.json({ message: 'Code sent' })
 })
@@ -82,7 +88,6 @@ authRouter.post('/verify-otp', async (c) => {
 
   const normalizedEmail = email.toLowerCase().trim()
 
-  // Find a valid, unused OTP for this email
   const [otp] = await db
     .select()
     .from(otpCodes)
@@ -106,7 +111,6 @@ authRouter.post('/verify-otp', async (c) => {
     .set({ used: true })
     .where(eq(otpCodes.id, otp.id))
 
-  // Upsert user
   let [user] = await db
     .select()
     .from(users)
@@ -114,7 +118,7 @@ authRouter.post('/verify-otp', async (c) => {
     .limit(1)
 
   if (!user) {
-    ;[user] = await db
+    [user] = await db
       .insert(users)
       .values({ email: normalizedEmail })
       .returning()

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { env } from "../../env.ts";
+import { env } from "../../utils/env.ts";
 import { S3Client } from "bun";
 import { authMiddleware } from "../../middlewares/auth.middleware.ts";
 

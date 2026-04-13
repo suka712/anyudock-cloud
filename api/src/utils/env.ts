@@ -11,6 +11,7 @@ export const env = {
   JWT_SECRET: required('JWT_SECRET'),
   DATABASE_URL: required('DATABASE_URL'),
   RESEND_API_KEY: required('RESEND_API_KEY'),
+  ALLOWED_ORIGINS: required('ALLOWED_ORIGINS'),
   S3_ENDPOINT: required('S3_ENDPOINT'),
   S3_BUCKET_NAME: required('S3_BUCKET_NAME'),
   S3_ACCESS_KEY_ID: required('S3_ACCESS_KEY_ID'),
