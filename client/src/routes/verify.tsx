@@ -1,5 +1,6 @@
 import { createRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, type FormEvent } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect, type FormEvent, type ChangeEvent } from 'react'
 import { rootRoute } from './root'
 import { api, ApiError } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,6 +13,7 @@ type VerifySearch = { email: string }
 function Verify() {
   const { email } = verifyRoute.useSearch()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
@@ -41,6 +43,7 @@ function Verify() {
         method: 'POST',
         body: JSON.stringify({ email, code }),
       })
+      await queryClient.invalidateQueries({ queryKey: ['auth'] })
       navigate({ to: '/' })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong')

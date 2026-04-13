@@ -1,7 +1,12 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import type { QueryClient } from '@tanstack/react-query'
 import '../index.css'
 
-export const rootRoute = createRootRoute({
+type RouterContext = {
+  queryClient: QueryClient
+}
+
+export const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <div className="min-h-screen bg-background text-foreground">
       <Outlet />
