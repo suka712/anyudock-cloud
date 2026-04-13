@@ -1,14 +1,12 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
 import { rootRoute } from './routes/root'
-import { indexRoute } from './routes/dashboard'
-import { signinRoute } from './routes/signin'
-import { verifyRoute } from './routes/verify'
+import { indexRoute } from './routes/index'
+import { dashRoute } from './routes/dashboard'
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  signinRoute,
-  verifyRoute,
+  dashRoute,
 ])
 
 export const queryClient = new QueryClient()

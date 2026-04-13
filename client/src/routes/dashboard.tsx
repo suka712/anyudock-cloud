@@ -14,7 +14,7 @@ const Dashboard = () => {
   async function handleSignOut() {
     await api('/auth/signout', { method: 'POST' })
     queryClient.removeQueries({ queryKey: ['auth'] })
-    navigate({ to: '/signin' })
+    navigate({ to: '/' })
   }
 
   return (
@@ -37,7 +37,7 @@ const Dashboard = () => {
   )
 }
 
-export const dashRoute = createRoute({
+export const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dashboard',
   component: Dashboard,
@@ -45,7 +45,7 @@ export const dashRoute = createRoute({
     try {
       await context.queryClient.ensureQueryData(authQueryOptions)
     } catch {
-      throw redirect({ to: '/signin' })
+      throw redirect({ to: '/' })
     }
   },
 })
