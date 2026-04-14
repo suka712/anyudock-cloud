@@ -4,6 +4,7 @@ import { S3Client } from "bun";
 import { authMiddleware } from "../../middlewares/auth.middleware.ts";
 import { db } from "../../db/index.ts";
 import { files } from "../../db/schema.ts";
+import {eq} from 'drizzle-orm'
 
 const credentials = {
   accessKeyId: env.S3_ACCESS_KEY_ID,
@@ -42,14 +43,23 @@ fileRouter.post('/', authMiddleware, async (c) => {
 })
 
 fileRouter.get('/', authMiddleware, async (c) => {
-  const result = await S3Client.list(null, credentials)
-  return c.json(result.contents ?? [])
+  const userId = c.get('user').sub;
+  const selectedFiles = await db.select().from(files).where(eq(files.userId, userId))
+
+
+  return c.json(selectedFiles)
 })
 
-fileRouter.get('/:key', authMiddleware, (c) => {
+fileRouter.get('/:key', authMiddleware, async (c) => {
   const key = c.req.param('key')
+  const [ownerId] = await db.select({ name: files.userId }).from(files).where(eq(files.id, key))
+  const userId = c.get('user').sub;
+
+  if (ownerId.name !== userId) {
+    return c.json({ error: 'User not authorized' }, 403)
+  }
+
   const url = S3Client.presign(key, credentials)
-  console.log('User requested a file:', key)
 
   return c.json({ url })
 })
