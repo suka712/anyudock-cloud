@@ -10,21 +10,7 @@ import { Resend } from 'resend'
 const resend = new Resend(env.RESEND_API_KEY)
 
 const OTP_EXPIRY_MINUTES = 10
-const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
-
-function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
-
-function cookieOptions() {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Lax' as const,
-    path: '/',
-    maxAge: SESSION_MAX_AGE,
-  }
-}
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7
 
 export const authRouter = new Hono()
 
@@ -53,7 +39,7 @@ authRouter.post('/send-otp', async (c) => {
     return c.json({ error: 'A code was already sent. Please wait for it to expire before requesting a new one.' }, 429)
   }
 
-  const code = generateOtp()
+  const code = Math.floor(100000 + Math.random() * 900000).toString()
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000)
 
   await db.insert(otpCodes).values({
@@ -105,7 +91,6 @@ authRouter.post('/verify-otp', async (c) => {
     return c.json({ error: 'Invalid or expired code' }, 401)
   }
 
-  // Mark OTP as used
   await db
     .update(otpCodes)
     .set({ used: true })
@@ -124,7 +109,6 @@ authRouter.post('/verify-otp', async (c) => {
       .returning()
   }
 
-  // Issue JWT
   const now = Math.floor(Date.now() / 1000)
   const token = await sign(
     {
@@ -137,7 +121,13 @@ authRouter.post('/verify-otp', async (c) => {
     'HS256',
   )
 
-  setCookie(c, 'session', token, cookieOptions())
+  setCookie(c, 'session', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: '/',
+    maxAge: SESSION_MAX_AGE
+  })
 
   return c.json({ user: { id: user.id, email: user.email } })
 })
