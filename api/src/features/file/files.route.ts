@@ -4,7 +4,7 @@ import { S3Client } from "bun";
 import { authMiddleware } from "../../middlewares/auth.middleware.ts";
 import { db } from "../../db/index.ts";
 import { files } from "../../db/schema.ts";
-import {eq} from 'drizzle-orm'
+import { eq, and } from "drizzle-orm";
 
 const credentials = {
   accessKeyId: env.S3_ACCESS_KEY_ID,
@@ -35,7 +35,7 @@ fileRouter.post('/', authMiddleware, async (c) => {
 
     const url = S3Client.presign(id, credentials)
 
-    return c.json({ url })
+    return c.json({ url, id })
   } catch (e) {
     console.error('Upload error:', e)
     return c.json({ error: String(e) }, 500)
@@ -43,11 +43,66 @@ fileRouter.post('/', authMiddleware, async (c) => {
 })
 
 fileRouter.get('/', authMiddleware, async (c) => {
-  const userId = c.get('user').sub;
-  const selectedFiles = await db.select().from(files).where(eq(files.userId, userId))
+  try {
+    const userId = c.get('user').sub
+    const result = await db.select()
+      .from(files)
+      .where(eq(files.userId, userId))
+      .orderBy(files.createdAt)
+    
+    return c.json(result)
+  } catch (e) {
+    console.error('List error:', e)
+    return c.json({ error: 'Failed to list files' }, 500)
+  }
+})
 
+fileRouter.get('/shared/:key', async (c) => {
+  const key = c.req.param('key')
+  try {
+    const [file] = await db.select()
+      .from(files)
+      .where(eq(files.id, key))
+    
+    if (!file || file.isPrivate) {
+      return c.json({ error: 'File not found or private' }, 404)
+    }
 
-  return c.json(selectedFiles)
+    const url = S3Client.presign(key, credentials)
+    return c.redirect(url)
+  } catch (e) {
+    return c.json({ error: 'Failed to access file' }, 500)
+  }
+})
+
+fileRouter.patch('/:key/privacy', authMiddleware, async (c) => {
+  const key = c.req.param('key')
+  const userId = c.get('user').sub
+  const { isPrivate } = await c.req.json<{ isPrivate: boolean }>()
+  
+  try {
+    const [file] = await db.select()
+      .from(files)
+      .where(and(eq(files.id, key), eq(files.userId, userId)))
+    
+    if (!file) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    await db.update(files)
+      .set({ isPrivate })
+      .where(eq(files.id, key))
+    
+    return c.json({ message: `Privacy updated for ${key}`, isPrivate })
+  } catch (e) {
+    return c.json({ error: 'Failed to update privacy' }, 500)
+  }
+})
+
+fileRouter.get('/:key/view', authMiddleware, async (c) => {
+  const key = c.req.param('key')
+  const url = S3Client.presign(key, credentials)
+  return c.redirect(url)
 })
 
 fileRouter.get('/:key', authMiddleware, async (c) => {
@@ -66,11 +121,23 @@ fileRouter.get('/:key', authMiddleware, async (c) => {
 
 fileRouter.delete('/:key', authMiddleware, async (c) => {
   const key = c.req.param('key')
+  const userId = c.get('user').sub
+  
   try {
+    const [file] = await db.select()
+      .from(files)
+      .where(and(eq(files.id, key), eq(files.userId, userId)))
+    
+    if (!file) {
+      return c.json({ error: 'File not found or unauthorized' }, 404)
+    }
+
     await S3Client.delete(key, credentials)
+    await db.delete(files).where(eq(files.id, key))
+    
     return c.json({ message: `File deleted: ${key}` })
   } catch (e) {
-    console.log('Error deleting file:', e)
+    console.error('Error deleting file:', e)
     return c.json({ error: 'Failed to delete file' }, 500)
   }
 })
