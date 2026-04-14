@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { env } from "../../utils/env.ts";
 import { S3Client } from "bun";
 import { authMiddleware } from "../../middlewares/auth.middleware.ts";
+import { db } from "../../db/index.ts";
+import { files } from "../../db/schema.ts";
 
 const credentials = {
   accessKeyId: env.S3_ACCESS_KEY_ID,
@@ -16,15 +18,21 @@ fileRouter.post('/', authMiddleware, async (c) => {
   try {
     const formData = await c.req.formData()
     const file = formData.get('file') as File
+    const fileName = formData.get('fileName') as string;
 
-    const key = `${crypto.randomUUID()}-${file.name}`
-    await S3Client.write(key, await file.arrayBuffer(), {
+    const [{ id }] = await db.insert(files).values({
+      userId: c.get('user').sub,
+      name: fileName,
+      size: file.size,
+      mimeType: file.type,
+    }).returning()
+
+    await S3Client.write(id, await file.arrayBuffer(), {
       ...credentials,
       type: file.type
     })
 
-    const url = S3Client.presign(key, credentials)
-    console.log('User uploaded a file:', key)
+    const url = S3Client.presign(id, credentials)
 
     return c.json({ url })
   } catch (e) {

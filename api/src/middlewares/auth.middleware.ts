@@ -3,7 +3,13 @@ import { getCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { env } from '../utils/env.ts'
 
-export const authMiddleware = createMiddleware(async (c, next) => {
+type Env = {
+  Variables: {
+    user: { sub: string; email: string }
+  }
+}
+
+export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const token = getCookie(c, 'session')
 
   if (!token) {
@@ -12,7 +18,7 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 
   try {
     const payload = await verify(token, env.JWT_SECRET, 'HS256')
-    c.set('user', payload)
+    c.set('user', payload as { sub: string; email: string })
     await next()
   } catch {
     return c.json({ error: 'Invalid token' }, 401)
