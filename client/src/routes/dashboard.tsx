@@ -80,9 +80,7 @@ const Dashboard = () => {
   }
 
   const handleCopyLink = (id: string) => {
-    const link = `${window.location.origin.replace('http://', '').replace('https://', '')}/api/file/p/${id}`
-    // Actually, use the API URL for direct access if it's public
-    const publicUrl = `${import.meta.env.VITE_API_URL}/file/p/${id}`
+    const publicUrl = `${import.meta.env.VITE_API_URL}/file/public/${id}`
     navigator.clipboard.writeText(publicUrl)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
