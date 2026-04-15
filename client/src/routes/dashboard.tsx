@@ -43,6 +43,10 @@ const Dashboard = () => {
   const [search, setSearch] = useState('')
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  
+  const [sharingFileId, setSharingFileId] = useState<string | null>(null)
+  const [shareToken, setShareToken] = useState<string | null>(null)
+  const [expirationMs, setExpirationMs] = useState<number | null>(3600000) // Default 1 hour
 
   const { data: user } = useQuery(authQueryOptions)
   
@@ -69,6 +73,17 @@ const Dashboard = () => {
     },
   })
 
+  const shareMutation = useMutation({
+    mutationFn: ({ id, expires_after_ms }: { id: string; expires_after_ms: number | null }) => 
+      api<{ id: string }>(`/file/${id}/share`, { 
+        method: 'POST', 
+        body: JSON.stringify({ expires_after_ms }) 
+      }),
+    onSuccess: (data) => {
+      setShareToken(data.id)
+    },
+  })
+
   const handleSignOut = async () => {
     await api('/auth/signout', { method: 'POST' })
     queryClient.removeQueries({ queryKey: ['auth'] })
@@ -84,10 +99,16 @@ const Dashboard = () => {
     }
   }
 
-  const handleCopyLink = (id: string) => {
-    const sharedUrl = `${import.meta.env.VITE_API_URL}/file/${id}/view`
+  const handleOpenShareModal = (id: string) => {
+    setSharingFileId(id)
+    setShareToken(null)
+    setExpirationMs(3600000)
+  }
+
+  const handleCopySharedLink = (token: string) => {
+    const sharedUrl = `${import.meta.env.VITE_API_URL}/file/shared/${token}`
     navigator.clipboard.writeText(sharedUrl)
-    setCopiedId(id)
+    setCopiedId(token)
     setTimeout(() => setCopiedId(null), 2000)
   }
 
@@ -104,8 +125,91 @@ const Dashboard = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
+  const sharingFile = files.find(f => f.id === sharingFileId)
+
   return (
     <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-background">
+      {/* Share Modal */}
+      {sharingFileId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="w-full max-w-lg border-8 border-primary bg-background p-8 shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-4xl font-black uppercase italic tracking-tighter">Share Data</h2>
+              <button onClick={() => setSharingFileId(null)} className="text-primary hover:scale-110 transition-transform">
+                <Plus size={48} className="rotate-45" strokeWidth={4} />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="border-4 border-primary/20 p-4">
+                <p className="text-xs font-black uppercase opacity-50 mb-1">Target File</p>
+                <p className="text-xl font-black uppercase truncate">{sharingFile?.name}</p>
+              </div>
+
+              {!shareToken ? (
+                <>
+                  <div className="space-y-4">
+                    <p className="text-xl font-black uppercase italic">Expiration Protocol:</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { label: '1 Hour', val: 3600000 },
+                        { label: '1 Day', val: 86400000 },
+                        { label: '7 Days', val: 604800000 },
+                        { label: 'Never', val: null },
+                      ].map((opt) => (
+                        <button
+                          key={opt.label}
+                          onClick={() => setExpirationMs(opt.val)}
+                          className={`border-4 border-primary p-3 text-lg font-black uppercase transition-all ${
+                            expirationMs === opt.val ? 'bg-primary text-background' : 'hover:bg-primary/10'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => shareMutation.mutate({ id: sharingFileId, expires_after_ms: expirationMs })}
+                    disabled={shareMutation.isPending}
+                    className="w-full bg-accent-foreground text-background py-4 text-2xl font-black uppercase border-4 border-primary shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:bg-background hover:text-primary hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-50"
+                  >
+                    {shareMutation.isPending ? 'Generating...' : 'Generate Secure Link'}
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                  <div className="border-4 border-primary p-4 bg-primary/5">
+                    <p className="text-xs font-black uppercase opacity-50 mb-2 text-primary">Access Token</p>
+                    <div className="bg-background border-2 border-primary p-3 font-bold break-all text-sm">
+                      {`${import.meta.env.VITE_API_URL}/file/shared/${shareToken}`}
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => handleCopySharedLink(shareToken)}
+                    className="w-full bg-green-500 text-white py-4 text-2xl font-black uppercase border-4 border-primary shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+                  >
+                    {copiedId === shareToken ? 'Copied to Clipboard' : 'Copy Link'}
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShareToken(null)
+                      setSharingFileId(null)
+                    }}
+                    className="w-full border-4 border-primary py-2 text-lg font-black uppercase hover:bg-primary/5 transition-all"
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar/Nav */}
       <nav className="border-b-4 border-primary p-6 flex justify-between items-center bg-background sticky top-0 z-50">
         <Link to="/dashboard" className="text-3xl font-black uppercase tracking-tighter italic border-3 border-primary pr-1">
@@ -261,14 +365,11 @@ const Dashboard = () => {
                         Grab
                       </button>
                       <button 
-                        onClick={() => handleCopyLink(file.id)}
-                        disabled={file.isPrivate}
-                        className={`border-2 border-primary p-2 flex items-center justify-center gap-2 transition-all font-black uppercase text-[10px] ${
-                          file.isPrivate ? 'opacity-30 cursor-not-allowed' : 'hover:bg-primary hover:text-background'
-                        }`}
+                        onClick={() => handleOpenShareModal(file.id)}
+                        className="border-2 border-primary p-2 flex items-center justify-center gap-2 hover:bg-primary hover:text-background transition-all font-black uppercase text-[10px]"
                       >
                         <ExternalLink size={15} strokeWidth={2} />
-                        {copiedId === file.id ? 'Copied' : 'Link'}
+                        Share
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -331,9 +432,8 @@ const Dashboard = () => {
                           <Download size={18} strokeWidth={3} />
                         </button>
                         <button 
-                          onClick={() => handleCopyLink(file.id)} 
-                          disabled={file.isPrivate}
-                          className={`hover:scale-125 transition-transform text-primary ${file.isPrivate ? 'opacity-10' : ''}`}
+                          onClick={() => handleOpenShareModal(file.id)} 
+                          className="hover:scale-125 transition-transform text-primary"
                         >
                           <ExternalLink size={18} strokeWidth={3} />
                         </button>

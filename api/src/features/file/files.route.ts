@@ -58,7 +58,7 @@ fileRouter.get('/shared/:token', async (c) => {
 
     const url = S3Client.presign(link.fileId, credentials)
 
-    return c.json({ url })
+    return c.redirect(url)
   } catch (e) {
     console.error('Error retrieving shared file:', e)
     return c.json({ error: 'Error retrieving shared file' }, 500)
@@ -192,14 +192,10 @@ fileRouter.post('/:key/share', authMiddleware, async (c) => {
       return c.json({ error: 'User not authorized' }, 403)
     }
 
-    if (file.isPrivate) {
-      return c.json({ error: 'File is private. Cannot be shared' }, 403)
-    }
-
     const [{ id }] = await db.insert(shareLinks).values({
       userId: userId,
       fileId: file.id,
-      expiresAt: new Date(Date.now() + expires_after_ms)
+      expiresAt: expires_after_ms ? new Date(Date.now() + expires_after_ms) : null
     }).returning()
 
     return c.json({ message: `Share token generated`, id: id })
