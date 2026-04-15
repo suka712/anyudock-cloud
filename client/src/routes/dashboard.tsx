@@ -17,11 +17,8 @@ import {
   Clock,
   HardDrive,
   User as UserIcon,
-  LucideReceiptRussianRuble,
   Lock,
   Unlock,
-  SkipBack,
-  StepBack,
   X
 } from 'lucide-react'
 import { useState } from 'react'
