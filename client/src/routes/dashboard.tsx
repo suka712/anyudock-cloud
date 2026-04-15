@@ -16,7 +16,13 @@ import {
   List,
   Clock,
   HardDrive,
-  User as UserIcon
+  User as UserIcon,
+  LucideReceiptRussianRuble,
+  Lock,
+  Unlock,
+  SkipBack,
+  StepBack,
+  X
 } from 'lucide-react'
 import { useState } from 'react'
 import '../index.css'
@@ -102,12 +108,12 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-background">
       {/* Sidebar/Nav */}
       <nav className="border-b-4 border-primary p-6 flex justify-between items-center bg-background sticky top-0 z-50">
-        <Link to="/dashboard" className="text-2xl font-black uppercase tracking-tighter">
-          AnyuDock <span className="text-sm bg-primary text-background px-2 ml-2 italic">DASHBOARD</span>
+        <Link to="/dashboard" className="text-3xl font-black uppercase tracking-tighter italic border-3 border-primary pr-1">
+          <span className="bg-primary text-background p-1">AnyuDock</span>/DASHBOARD
         </Link>
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 border-4 border-primary px-4 py-1 font-black text-sm uppercase">
-            <UserIcon size={16} />
+          <div className="hidden md:flex text-xl items-center gap-2 border-4 border-primary px-4 py-1 font-black uppercase">
+            <UserIcon size={20} />
             {user?.email}
           </div>
           <button 
@@ -115,7 +121,7 @@ const Dashboard = () => {
             className="border-4 border-primary p-2 hover:bg-primary hover:text-background transition-colors"
             title="Sign Out"
           >
-            <LogOut size={24} />
+            <LogOut size={20} />
           </button>
         </div>
       </nav>
@@ -141,11 +147,10 @@ const Dashboard = () => {
 
           <button 
             onClick={() => setIsUploadOpen(!isUploadOpen)}
-            className="group relative inline-block bg-primary text-background px-12 py-6 text-3xl font-black uppercase hover:bg-background hover:text-primary border-4 border-primary transition-all shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1.25 hover:translate-y-1.25"
+            className="group relative inline-block bg-accent-foreground text-background px-12 py-2 text-xl font-black uppercase hover:bg-background hover:text-primary border-4 min-w-56 border-primary transition-all shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1.25 hover:translate-y-1.25"
           >
             <div className="flex items-center gap-4">
-              {isUploadOpen ? <Trash2 className="rotate-45" /> : <Plus size={32} strokeWidth={4} />}
-              {isUploadOpen ? 'Close' : 'Upload'}
+              {isUploadOpen ? <><X strokeWidth={4} />Close</> : <><Plus strokeWidth={4} />Upload</>}
             </div>
           </button>
         </header>
@@ -252,7 +257,7 @@ const Dashboard = () => {
                         onClick={() => handleDownload(file.id)}
                         className="border-2 border-primary p-2 flex items-center justify-center gap-2 hover:bg-primary hover:text-background transition-all font-black uppercase text-[10px]"
                       >
-                        <Download size={14} strokeWidth={3} />
+                        <Download size={15} strokeWidth={2} />
                         Grab
                       </button>
                       <button 
@@ -262,7 +267,7 @@ const Dashboard = () => {
                           file.isPrivate ? 'opacity-30 cursor-not-allowed' : 'hover:bg-primary hover:text-background'
                         }`}
                       >
-                        <ExternalLink size={14} strokeWidth={3} />
+                        <ExternalLink size={15} strokeWidth={2} />
                         {copiedId === file.id ? 'Copied' : 'Link'}
                       </button>
                     </div>
@@ -273,7 +278,7 @@ const Dashboard = () => {
                           file.isPrivate ? 'bg-primary text-background' : 'bg-background text-primary'
                         }`}
                       >
-                        {file.isPrivate ? 'Private' : 'Public'}
+                        {file.isPrivate ? <><Lock size={15} strokeWidth={2} /> private</> : <><Unlock size={15} strokeWidth={2} />public</>} 
                       </button>
                       <button 
                         onClick={() => deleteMutation.mutate(file.id)}
@@ -297,7 +302,7 @@ const Dashboard = () => {
                   <th className="p-4 tracking-tighter italic">Name</th>
                   <th className="p-4 tracking-tighter italic hidden md:table-cell">Format</th>
                   <th className="p-4 tracking-tighter italic hidden sm:table-cell">Size</th>
-                  <th className="p-4 tracking-tighter italic">Status</th>
+                  <th className="p-4 tracking-tighter italic min-w-40">Status</th>
                   <th className="p-4 tracking-tighter italic">Action</th>
                 </tr>
               </thead>
