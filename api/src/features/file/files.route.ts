@@ -4,7 +4,7 @@ import { S3Client } from "bun";
 import { authMiddleware } from "../../middlewares/auth.middleware.ts";
 import { db } from "../../db/index.ts";
 import { files } from "../../db/schema.ts";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 const credentials = {
   accessKeyId: env.S3_ACCESS_KEY_ID,
@@ -49,7 +49,7 @@ fileRouter.get('/', authMiddleware, async (c) => {
       .from(files)
       .where(eq(files.userId, userId))
       .orderBy(files.createdAt)
-    
+
     return c.json(result)
   } catch (e) {
     console.error('List error:', e)
@@ -63,7 +63,7 @@ fileRouter.get('/shared/:key', async (c) => {
     const [file] = await db.select()
       .from(files)
       .where(eq(files.id, key))
-    
+
     if (!file || file.isPrivate) {
       return c.json({ error: 'File not found or private' }, 404)
     }
@@ -79,20 +79,23 @@ fileRouter.patch('/:key/privacy', authMiddleware, async (c) => {
   const key = c.req.param('key')
   const userId = c.get('user').sub
   const { isPrivate } = await c.req.json<{ isPrivate: boolean }>()
-  
+
   try {
     const [file] = await db.select()
       .from(files)
-      .where(and(eq(files.id, key), eq(files.userId, userId)))
-    
+      .where(eq(files.id, key))
+
     if (!file) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      return c.json({ error: 'File not found' }, 404)
+    }
+    if (file.userId !== userId) {
+      return c.json({ error: 'User not authorized' }, 403)
     }
 
     await db.update(files)
       .set({ isPrivate })
       .where(eq(files.id, key))
-    
+
     return c.json({ message: `Privacy updated for ${key}`, isPrivate })
   } catch (e) {
     return c.json({ error: 'Failed to update privacy' }, 500)
@@ -101,40 +104,68 @@ fileRouter.patch('/:key/privacy', authMiddleware, async (c) => {
 
 fileRouter.get('/:key/view', authMiddleware, async (c) => {
   const key = c.req.param('key')
-  const url = S3Client.presign(key, credentials)
-  return c.redirect(url)
+  const userId = c.get('user').sub;
+
+  try {
+    const [file] = await db.select().from(files).where(eq(files.id, key))
+
+    if (!file) {
+      return c.json({ error: 'File not found' }, 404)
+    }
+    if (file.userId !== userId) {
+      return c.json({ error: 'User not authorized' }, 403)
+    }
+
+    const url = S3Client.presign(key, credentials)
+    return c.redirect(url)
+  } catch (e) {
+    console.error('Error retrieving file:', e)
+    return c.json({ error: 'Failed to retrieve file' }, 500)
+  }
 })
 
 fileRouter.get('/:key', authMiddleware, async (c) => {
   const key = c.req.param('key')
-  const [ownerId] = await db.select({ name: files.userId }).from(files).where(eq(files.id, key))
   const userId = c.get('user').sub;
 
-  if (ownerId.name !== userId) {
-    return c.json({ error: 'User not authorized' }, 403)
+  try {
+    const [file] = await db.select().from(files).where(eq(files.id, key))
+
+    if (!file) {
+      return c.json({ error: 'File not found' }, 404)
+    }
+    if (file.userId !== userId) {
+      return c.json({ error: 'User not authorized' }, 403)
+    }
+
+    const url = S3Client.presign(key, credentials)
+    return c.json({ url })
+  } catch (e) {
+    console.error('Error retrieving file:', e)
+    return c.json({ error: 'Failed to retrieve file' }, 500)
   }
-
-  const url = S3Client.presign(key, credentials)
-
-  return c.json({ url })
 })
 
 fileRouter.delete('/:key', authMiddleware, async (c) => {
   const key = c.req.param('key')
   const userId = c.get('user').sub
-  
+
   try {
     const [file] = await db.select()
       .from(files)
-      .where(and(eq(files.id, key), eq(files.userId, userId)))
-    
+      .where(eq(files.id, key))
+
     if (!file) {
-      return c.json({ error: 'File not found or unauthorized' }, 404)
+      return c.json({ error: 'File not found' }, 404)
+    }
+
+    if (file.userId !== userId) {
+      return c.json({ error: 'User not authorized' }, 403)
     }
 
     await S3Client.delete(key, credentials)
     await db.delete(files).where(eq(files.id, key))
-    
+
     return c.json({ message: `File deleted: ${key}` })
   } catch (e) {
     console.error('Error deleting file:', e)
