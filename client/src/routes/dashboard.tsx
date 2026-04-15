@@ -2,7 +2,6 @@ import { createRoute, redirect, useNavigate, Link } from '@tanstack/react-router
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { rootRoute } from './root'
 import { authQueryOptions } from '@/lib/auth'
-import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { FileUpload } from '@/components/FileUpload'
 import { 
@@ -80,8 +79,8 @@ const Dashboard = () => {
   }
 
   const handleCopyLink = (id: string) => {
-    const publicUrl = `${import.meta.env.VITE_API_URL}/file/public/${id}`
-    navigator.clipboard.writeText(publicUrl)
+    const sharedUrl = `${import.meta.env.VITE_API_URL}/file/shared/${id}`
+    navigator.clipboard.writeText(sharedUrl)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
   }
