@@ -79,7 +79,7 @@ const Dashboard = () => {
   }
 
   const handleCopyLink = (id: string) => {
-    const sharedUrl = `${import.meta.env.VITE_API_URL}/file/shared/${id}`
+    const sharedUrl = `${import.meta.env.VITE_API_URL}/file/${id}/view`
     navigator.clipboard.writeText(sharedUrl)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
@@ -134,7 +134,7 @@ const Dashboard = () => {
               </div>
               <div className="border-4 border-primary px-6 py-2 flex items-center gap-3">
                 <Clock size={24} strokeWidth={3} />
-                <span className="text-xl font-black uppercase italic">{files.length} ITEMS</span>
+                <span className="text-xl font-black uppercase italic">{files.length} {files.length === 1 ? 'ITEM' : 'ITEMS'}</span>
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ const Dashboard = () => {
                     <img 
                       src={`${import.meta.env.VITE_API_URL}/file/${file.id}/view`}
                       alt={file.name}
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-110 group-hover:scale-100"
+                      className="w-full h-full object-cover group-hover:grayscale-0 transition-all duration-500 scale-110 group-hover:scale-100"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xNSAySDdYNHYxNmgxNFY0bC01LTVaIi8+PHBhdGggZD0iTTE1IDJ2NWg1Ii8+PC9zdmc+'
                       }}
@@ -263,13 +263,13 @@ const Dashboard = () => {
                         }`}
                       >
                         <ExternalLink size={14} strokeWidth={3} />
-                        {copiedId === file.id ? 'Done' : 'Link'}
+                        {copiedId === file.id ? 'Copied' : 'Link'}
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <button 
                         onClick={() => privacyMutation.mutate({ id: file.id, isPrivate: !file.isPrivate })}
-                        className={`border-2 border-primary p-2 flex items-center justify-center gap-2 transition-all font-black uppercase text-[10px] ${
+                        className={`border-2 border-primary p-2 flex items-center hover:bg-green-400 hover:border-green-400 justify-center gap-2 transition-all font-black uppercase text-[10px] ${
                           file.isPrivate ? 'bg-primary text-background' : 'bg-background text-primary'
                         }`}
                       >

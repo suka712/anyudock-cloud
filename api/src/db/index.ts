@@ -8,4 +8,4 @@ export const db = drizzle({
   schema,
 })
 
-await migrate(db, { migrationsFolder: './src/db/drizzle' }).then(() => console.log('Migrations ran successfully'))
+await migrate(db, { migrationsFolder: './src/db/drizzle' }).then(() => console.log('🍋 Migrations ran successfully'))
