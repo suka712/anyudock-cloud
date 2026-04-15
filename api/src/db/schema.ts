@@ -24,3 +24,11 @@ export const files = pgTable('files', {
   isPrivate: boolean('is_private').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
+
+export const shareLinks = pgTable('share_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  fileId: uuid('file_id').notNull().references(() => files.id, { onDelete: 'cascade' }),
+  expiresAt: timestamp(),
+  createdAt: timestamp().defaultNow(),
+})

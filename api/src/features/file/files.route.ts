@@ -3,7 +3,7 @@ import { env } from "../../utils/env.ts";
 import { S3Client } from "bun";
 import { authMiddleware } from "../../middlewares/auth.middleware.ts";
 import { db } from "../../db/index.ts";
-import { files } from "../../db/schema.ts";
+import { files, shareLinks } from "../../db/schema.ts";
 import { eq } from "drizzle-orm";
 
 const credentials = {
@@ -39,6 +39,29 @@ fileRouter.post('/', authMiddleware, async (c) => {
   } catch (e) {
     console.error('Upload error:', e)
     return c.json({ error: String(e) }, 500)
+  }
+})
+
+fileRouter.get('/shared/:token', async (c) => {
+  const token = c.req.param('token')
+
+  try {
+    const [link] = await db.select().from(shareLinks).where(eq(shareLinks.id, token))
+
+    if (!link) {
+      return c.json({ error: 'Link not found' }, 404)
+    }
+
+    if (link.expiresAt && link.expiresAt < new Date()) {
+      return c.json({ error: 'Link expired' }, 403)
+    }
+
+    const url = S3Client.presign(link.fileId, credentials)
+
+    return c.json({ url })
+  } catch (e) {
+    console.error('Error retrieving shared file:', e)
+    return c.json({ error: 'Error retrieving shared file' }, 500)
   }
 })
 
@@ -148,5 +171,40 @@ fileRouter.delete('/:key', authMiddleware, async (c) => {
   } catch (e) {
     console.error('Error deleting file:', e)
     return c.json({ error: 'Failed to delete file' }, 500)
+  }
+})
+
+fileRouter.post('/:key/share', authMiddleware, async (c) => {
+  const { expires_after_ms } = await c.req.json()
+  const key = c.req.param('key')
+  const userId = c.get('user').sub
+
+  try {
+    const [file] = await db.select()
+      .from(files)
+      .where(eq(files.id, key))
+
+    if (!file) {
+      return c.json({ error: 'File not found' }, 404)
+    }
+
+    if (file.userId !== userId) {
+      return c.json({ error: 'User not authorized' }, 403)
+    }
+
+    if (file.isPrivate) {
+      return c.json({ error: 'File is private. Cannot be shared' }, 403)
+    }
+
+    const [{ id }] = await db.insert(shareLinks).values({
+      userId: userId,
+      fileId: file.id,
+      expiresAt: new Date(Date.now() + expires_after_ms)
+    }).returning()
+
+    return c.json({ message: `Share token generated`, id: id })
+  } catch (e) {
+    console.error('Error sharing file:', e)
+    return c.json({ error: 'Failed to share file' }, 500)
   }
 })
