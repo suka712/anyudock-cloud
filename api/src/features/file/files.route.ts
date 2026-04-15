@@ -57,7 +57,7 @@ fileRouter.get('/', authMiddleware, async (c) => {
   }
 })
 
-fileRouter.get('/shared/:key', async (c) => {
+fileRouter.get('/:key/view', async (c) => {
   const key = c.req.param('key')
   try {
     const [file] = await db.select()
@@ -99,28 +99,6 @@ fileRouter.patch('/:key/privacy', authMiddleware, async (c) => {
     return c.json({ message: `Privacy updated for ${key}`, isPrivate })
   } catch (e) {
     return c.json({ error: 'Failed to update privacy' }, 500)
-  }
-})
-
-fileRouter.get('/:key/view', authMiddleware, async (c) => {
-  const key = c.req.param('key')
-  const userId = c.get('user').sub;
-
-  try {
-    const [file] = await db.select().from(files).where(eq(files.id, key))
-
-    if (!file) {
-      return c.json({ error: 'File not found' }, 404)
-    }
-    if (file.userId !== userId) {
-      return c.json({ error: 'User not authorized' }, 403)
-    }
-
-    const url = S3Client.presign(key, credentials)
-    return c.redirect(url)
-  } catch (e) {
-    console.error('Error retrieving file:', e)
-    return c.json({ error: 'Failed to retrieve file' }, 500)
   }
 })
 
