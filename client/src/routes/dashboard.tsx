@@ -87,13 +87,8 @@ const Dashboard = () => {
     navigate({ to: '/' })
   }
 
-  const handleDownload = async (id: string) => {
-    try {
-      const { url } = await api<{ url: string }>(`/file/${id}`)
-      window.open(url, '_blank')
-    } catch (error) {
-      console.error('Download failed:', error)
-    }
+  const handleDownload = (id: string) => {
+    window.open(`${import.meta.env.VITE_API_URL}/file/${id}/download`, '_blank')
   }
 
   const handleOpenShareModal = (id: string) => {
@@ -361,9 +356,10 @@ const Dashboard = () => {
                         <Download size={15} strokeWidth={2} />
                         Grab
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleOpenShareModal(file.id)}
-                        className="border-2 border-primary p-2 flex items-center justify-center gap-2 hover:bg-primary hover:text-background transition-all font-black uppercase text-[10px]"
+                        disabled={file.isPrivate}
+                        className="border-2 border-primary p-2 flex items-center justify-center gap-2 hover:bg-primary hover:text-background transition-all font-black uppercase text-[10px] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-primary"
                       >
                         <ExternalLink size={15} strokeWidth={2} />
                         Share
@@ -428,9 +424,10 @@ const Dashboard = () => {
                         <button onClick={() => handleDownload(file.id)} className="hover:scale-125 transition-transform text-primary">
                           <Download size={18} strokeWidth={3} />
                         </button>
-                        <button 
-                          onClick={() => handleOpenShareModal(file.id)} 
-                          className="hover:scale-125 transition-transform text-primary"
+                        <button
+                          onClick={() => handleOpenShareModal(file.id)}
+                          disabled={file.isPrivate}
+                          className="hover:scale-125 transition-transform text-primary disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
                           <ExternalLink size={18} strokeWidth={3} />
                         </button>
