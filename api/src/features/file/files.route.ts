@@ -1,16 +1,16 @@
-import { Hono } from "hono";
-import { env } from "../../utils/env.ts";
-import { S3Client } from "bun";
-import { authMiddleware } from "../../middlewares/auth.middleware.ts";
-import { db } from "../../db/index.ts";
-import { files, shareLinks, users } from "../../db/schema.ts";
-import { eq, sum } from "drizzle-orm";
+import { Hono } from 'hono'
+import { env } from '../../utils/env.ts'
+import { S3Client } from 'bun'
+import { authMiddleware } from '../../middlewares/auth.middleware.ts'
+import { db } from '../../db/index.ts'
+import { files, shareLinks, users } from '../../db/schema.ts'
+import { eq, sum } from 'drizzle-orm'
 
 const credentials = {
   accessKeyId: env.S3_ACCESS_KEY_ID,
   secretAccessKey: env.S3_SECRET_ACCESS_KEY,
   bucket: env.S3_BUCKET_NAME,
-  endpoint: env.S3_ENDPOINT
+  endpoint: env.S3_ENDPOINT,
 }
 
 const DURATIONS: Record<string, number> = {
@@ -27,7 +27,7 @@ fileRouter.post('/', authMiddleware, async (c) => {
     const userId = c.get('user').sub
     const formData = await c.req.formData()
     const file = formData.get('file') as File
-    const fileName = formData.get('fileName') as string;
+    const fileName = formData.get('fileName') as string
     const expiresIn = formData.get('expiresIn') as string | null
 
     const expiresAt =
@@ -39,7 +39,7 @@ fileRouter.post('/', authMiddleware, async (c) => {
     const [userStats] = await db
       .select({
         limit: users.storageLimit,
-        currentTotal: sum(files.size)
+        currentTotal: sum(files.size),
       })
       .from(users)
       .leftJoin(files, eq(users.id, files.userId))
@@ -55,22 +55,28 @@ fileRouter.post('/', authMiddleware, async (c) => {
 
     if (currentTotal + file.size > storageLimit) {
       const remaining = Math.max(0, storageLimit - currentTotal)
-      return c.json({ 
-        error: `Storage limit exceeded. Used: ${(currentTotal / 1024 / 1024).toFixed(2)}MB. Limit: ${(storageLimit / 1024 / 1024).toFixed(2)}MB. Remaining: ${(remaining / 1024 / 1024).toFixed(2)}MB.` 
-      }, 400)
+      return c.json(
+        {
+          error: `Storage limit exceeded. Used: ${(currentTotal / 1024 / 1024).toFixed(2)}MB. Limit: ${(storageLimit / 1024 / 1024).toFixed(2)}MB. Remaining: ${(remaining / 1024 / 1024).toFixed(2)}MB.`,
+        },
+        400,
+      )
     }
 
-    const [{ id }] = await db.insert(files).values({
-      userId,
-      name: fileName,
-      size: file.size,
-      mimeType: file.type,
-      expiresAt,
-    }).returning()
+    const [{ id }] = await db
+      .insert(files)
+      .values({
+        userId,
+        name: fileName,
+        size: file.size,
+        mimeType: file.type,
+        expiresAt,
+      })
+      .returning()
 
     await S3Client.write(id, await file.arrayBuffer(), {
       ...credentials,
-      type: file.type
+      type: file.type,
     })
 
     const url = S3Client.presign(id, credentials)
@@ -86,7 +92,10 @@ fileRouter.get('/shared/:token', async (c) => {
   const token = c.req.param('token')
 
   try {
-    const [link] = await db.select().from(shareLinks).where(eq(shareLinks.id, token))
+    const [link] = await db
+      .select()
+      .from(shareLinks)
+      .where(eq(shareLinks.id, token))
 
     if (!link) {
       return c.json({ error: 'Link not found' }, 404)
@@ -96,7 +105,10 @@ fileRouter.get('/shared/:token', async (c) => {
       return c.json({ error: 'Link expired' }, 403)
     }
 
-    const [file] = await db.select().from(files).where(eq(files.id, link.fileId))
+    const [file] = await db
+      .select()
+      .from(files)
+      .where(eq(files.id, link.fileId))
 
     if (!file) {
       return c.json({ error: 'File not found' }, 404)
@@ -118,7 +130,8 @@ fileRouter.get('/shared/:token', async (c) => {
 fileRouter.get('/', authMiddleware, async (c) => {
   try {
     const userId = c.get('user').sub
-    const result = await db.select()
+    const result = await db
+      .select()
       .from(files)
       .where(eq(files.userId, userId))
       .orderBy(files.createdAt)
@@ -136,9 +149,7 @@ fileRouter.get('/:key/view', authMiddleware, async (c) => {
   const userId = c.get('user').sub
 
   try {
-    const [file] = await db.select()
-      .from(files)
-      .where(eq(files.id, key))
+    const [file] = await db.select().from(files).where(eq(files.id, key))
 
     if (!file) {
       return c.json({ error: 'File not found' }, 404)
@@ -163,9 +174,7 @@ fileRouter.get('/:key/download', async (c) => {
   const key = c.req.param('key')
 
   try {
-    const [file] = await db.select()
-      .from(files)
-      .where(eq(files.id, key))
+    const [file] = await db.select().from(files).where(eq(files.id, key))
 
     if (!file) {
       return c.json({ error: 'File not found' }, 404)
@@ -192,9 +201,7 @@ fileRouter.patch('/:key/privacy', authMiddleware, async (c) => {
   const { isPrivate } = await c.req.json<{ isPrivate: boolean }>()
 
   try {
-    const [file] = await db.select()
-      .from(files)
-      .where(eq(files.id, key))
+    const [file] = await db.select().from(files).where(eq(files.id, key))
 
     if (!file) {
       return c.json({ error: 'File not found' }, 404)
@@ -203,9 +210,7 @@ fileRouter.patch('/:key/privacy', authMiddleware, async (c) => {
       return c.json({ error: 'User not authorized' }, 403)
     }
 
-    await db.update(files)
-      .set({ isPrivate })
-      .where(eq(files.id, key))
+    await db.update(files).set({ isPrivate }).where(eq(files.id, key))
 
     return c.json({ message: `Privacy updated for ${key}`, isPrivate })
   } catch (e) {
@@ -218,9 +223,7 @@ fileRouter.delete('/:key', authMiddleware, async (c) => {
   const userId = c.get('user').sub
 
   try {
-    const [file] = await db.select()
-      .from(files)
-      .where(eq(files.id, key))
+    const [file] = await db.select().from(files).where(eq(files.id, key))
 
     if (!file) {
       return c.json({ error: 'File not found' }, 404)
@@ -241,14 +244,12 @@ fileRouter.delete('/:key', authMiddleware, async (c) => {
 })
 
 fileRouter.post('/:key/share', authMiddleware, async (c) => {
-  const { expires_after_ms } = await c.req.json()
+  const { expiresIn } = await c.req.json()
   const key = c.req.param('key')
   const userId = c.get('user').sub
 
   try {
-    const [file] = await db.select()
-      .from(files)
-      .where(eq(files.id, key))
+    const [file] = await db.select().from(files).where(eq(files.id, key))
 
     if (!file) {
       return c.json({ error: 'File not found' }, 404)
@@ -262,11 +263,19 @@ fileRouter.post('/:key/share', authMiddleware, async (c) => {
       return c.json({ error: 'Cannot share a private file' }, 400)
     }
 
-    const [{ id }] = await db.insert(shareLinks).values({
-      userId: userId,
-      fileId: file.id,
-      expiresAt: expires_after_ms ? new Date(Date.now() + expires_after_ms) : null
-    }).returning()
+    const expiresAt =
+      expiresIn && expiresIn !== 'never' && DURATIONS[expiresIn]
+        ? new Date(Date.now() + DURATIONS[expiresIn])
+        : null
+
+    const [{ id }] = await db
+      .insert(shareLinks)
+      .values({
+        userId: userId,
+        fileId: file.id,
+        expiresAt,
+      })
+      .returning()
 
     return c.json({ message: `Share token generated`, id: id })
   } catch (e) {

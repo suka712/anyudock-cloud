@@ -30,6 +30,8 @@ import {
 import { useState } from 'react'
 import '../index.css'
 
+type ShareExpiresIn = '1h' | '24h' | '7d' | 'never'
+
 interface FileMetadata {
   id: string
   name: string
@@ -70,7 +72,7 @@ const Dashboard = () => {
 
   const [sharingFileId, setSharingFileId] = useState<string | null>(null)
   const [shareToken, setShareToken] = useState<string | null>(null)
-  const [expirationMs, setExpirationMs] = useState<number | null>(3600000) // Default 1 hour
+  const [expiresIn, setExpiresIn] = useState<ShareExpiresIn>('1h')
 
   const { data: user } = useQuery(authQueryOptions)
 
@@ -100,14 +102,14 @@ const Dashboard = () => {
   const shareMutation = useMutation({
     mutationFn: ({
       id,
-      expires_after_ms,
+      expiresIn,
     }: {
       id: string
-      expires_after_ms: number | null
+      expiresIn: ShareExpiresIn
     }) =>
       api<{ id: string }>(`/file/${id}/share`, {
         method: 'POST',
-        body: JSON.stringify({ expires_after_ms }),
+        body: JSON.stringify({ expiresIn }),
       }),
     onSuccess: (data) => {
       setShareToken(data.id)
@@ -127,7 +129,7 @@ const Dashboard = () => {
   const handleOpenShareModal = (id: string) => {
     setSharingFileId(id)
     setShareToken(null)
-    setExpirationMs(3600000)
+    setExpiresIn('1h')
   }
 
   const handleCopySharedLink = (token: string) => {
@@ -187,17 +189,19 @@ const Dashboard = () => {
                       Expiration Protocol:
                     </p>
                     <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { label: '1 Hour', val: 3600000 },
-                        { label: '1 Day', val: 86400000 },
-                        { label: '7 Days', val: 604800000 },
-                        { label: 'Never', val: null },
-                      ].map((opt) => (
+                      {(
+                        [
+                          { label: '1 Hour', val: '1h' },
+                          { label: '1 Day', val: '24h' },
+                          { label: '7 Days', val: '7d' },
+                          { label: 'Never', val: 'never' },
+                        ] as const
+                      ).map((opt) => (
                         <button
                           key={opt.label}
-                          onClick={() => setExpirationMs(opt.val)}
+                          onClick={() => setExpiresIn(opt.val)}
                           className={`border-4 border-primary p-3 text-lg font-black uppercase transition-all ${
-                            expirationMs === opt.val
+                            expiresIn === opt.val
                               ? 'bg-primary text-background'
                               : 'hover:bg-primary/10'
                           }`}
@@ -212,7 +216,7 @@ const Dashboard = () => {
                     onClick={() =>
                       shareMutation.mutate({
                         id: sharingFileId,
-                        expires_after_ms: expirationMs,
+                        expiresIn,
                       })
                     }
                     disabled={shareMutation.isPending}
