@@ -159,7 +159,7 @@ export function FileUpload() {
         </div>
         <div className="space-y-2">
           <p className="text-3xl font-black uppercase tracking-tighter">
-            Drop files or folders here
+            Drop files or drag folders here
           </p>
           <p className="text-lg font-bold opacity-60 uppercase italic">
             or click to browse — folders auto-zipped
