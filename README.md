@@ -1,45 +1,98 @@
-# AnyuS3 (暗语-S3) Setup
+# AnyuDock (暗语-S3)
 
-Pronounced ànyǔ (ahn-yoo)
+Pronounced *anyu* (ahn-yoo)
 
-Simple S3 file storage for sharing files and env configs between machines.
+Simple S3 file storage for sharing files and env configs between machines. Brutalist by design, minimal by nature.
 
-See my setup live at [AnyuDock.cloud](https://anyudock.cloud)
-## Start
+Live at [anyudock.cloud](https://anyudock.cloud)
 
-1. Copy the env file and fill in your values:
+## Stack
+
+- **API** — [Hono](https://hono.dev) + [Bun](https://bun.sh), Drizzle ORM, PostgreSQL
+- **Client** — React, TanStack Router/Query, Tailwind CSS, Vite
+- **Storage** — Any S3-compatible provider
+- **Auth** — Email OTP via [Resend](https://resend.com), JWT session cookies
+
+## Setup
+
+### 1. API
+
 ```bash
-cp api/.env.example api/.env
+cd api
+cp .env.example .env
 ```
 
-2. Configure your S3 credentials in `api/.env`:
+Fill in `api/.env`:
+
 ```
 PORT=8080
-ADMIN_USERNAME=your_username
-ADMIN_PASSWORD=your_password
 JWT_SECRET=your_jwt_secret
-
+DATABASE_URL=postgres://user:password@localhost:5432/anyudock
+RESEND_API_KEY=re_xxxxxxxxxxxx
+ALLOWED_ORIGINS=http://localhost:5173
 S3_ENDPOINT=https://your-s3-endpoint.com
 S3_BUCKET_NAME=your-bucket
 S3_ACCESS_KEY_ID=your_access_key
 S3_SECRET_ACCESS_KEY=your_secret_key
 ```
 
-3. Install and run:
+Run migrations and start:
+
 ```bash
-cd api
+bun install
+bun run db:migrate
+bun run dev
+```
+
+### 2. Client
+
+```bash
+cd client
+cp .env.example .env
+```
+
+Fill in `client/.env`:
+
+```
+VITE_API_URL="http://localhost:8080"
+```
+
+```bash
 bun install
 bun run dev
 ```
 
-4. Serve the client
+## API Routes
 
-Open `client/index.html` in your browser. Update `client/config.js` with your backend URL if needed.
+All file routes are under `/file`.
 
-Serve the frontend through `localhost:3000` with 
-```bash
-bun x serve
-```
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/file` | Yes | Upload a file |
+| `GET` | `/file` | Yes | List user's files |
+| `GET` | `/file/:key/view` | Yes | Preview a file (redirect to S3) |
+| `GET` | `/file/:key/download` | No | Download a public file (redirect to S3) |
+| `PATCH` | `/file/:key/privacy` | Yes | Toggle file privacy |
+| `DELETE` | `/file/:key` | Yes | Delete a file |
+| `POST` | `/file/:key/share` | Yes | Generate a share link (public files only) |
+| `GET` | `/file/shared/:token` | No | Access a file via share link |
 
----
-The app runs without deployment. Just have the correct S3 credentials filled in.
+Auth routes are under `/auth`:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/auth/send-otp` | Send OTP to email |
+| `POST` | `/auth/verify-otp` | Verify OTP and set session cookie |
+| `POST` | `/auth/signout` | Clear session |
+| `GET` | `/auth/me` | Get current user |
+
+## File Privacy
+
+- Files are **private by default** on upload
+- Private files can only be previewed/managed by the owner
+- Public files can be downloaded by anyone with the file ID
+- Only public files can have share links generated
+
+## Contributors
+
+Anh D Tran, Bush, khiem, suka712, Thai, Trinh Thu
