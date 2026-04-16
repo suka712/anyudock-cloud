@@ -2,7 +2,13 @@ import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
-import { Upload, X, File as FileIcon, Loader2, FolderArchive } from 'lucide-react'
+import {
+  Upload,
+  X,
+  File as FileIcon,
+  Loader2,
+  FolderArchive,
+} from 'lucide-react'
 import { readDirectoryEntries, zipFiles } from '@/lib/folder-zip'
 
 type ExpiresIn = '1h' | '6h' | '24h' | '7d' | 'never'
@@ -25,9 +31,9 @@ export function FileUpload() {
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true)
-    } else if (e.type === "dragleave") {
+    } else if (e.type === 'dragleave') {
       setDragActive(false)
     }
   }, [])
@@ -48,11 +54,15 @@ export function FileUpload() {
       if (entry?.isDirectory) {
         setZipping(entry.name)
         try {
-          const entries = await readDirectoryEntries(entry as FileSystemDirectoryEntry)
+          const entries = await readDirectoryEntries(
+            entry as FileSystemDirectoryEntry,
+          )
           if (entries.length > 0) {
             const zipped = await zipFiles(entries, entry.name)
             if (zipped.size > MAX_FILE_SIZE) {
-              alert(`Folder "${entry.name}" zipped to ${(zipped.size / 1024 / 1024).toFixed(2)}MB which exceeds the 50MB limit.`)
+              alert(
+                `Folder "${entry.name}" zipped to ${(zipped.size / 1024 / 1024).toFixed(2)}MB which exceeds the 50MB limit.`,
+              )
             } else {
               newFiles.push({ file: zipped, isFolder: true })
             }
@@ -72,7 +82,7 @@ export function FileUpload() {
       }
     }
 
-    setFiles(prev => [...prev, ...newFiles])
+    setFiles((prev) => [...prev, ...newFiles])
   }, [])
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,12 +96,12 @@ export function FileUpload() {
           newFiles.push({ file, isFolder: false })
         }
       }
-      setFiles(prev => [...prev, ...newFiles])
+      setFiles((prev) => [...prev, ...newFiles])
     }
   }, [])
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index))
+    setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
   const uploadFiles = async () => {
@@ -108,7 +118,7 @@ export function FileUpload() {
         await api('/file', {
           method: 'POST',
           body: formData,
-          headers: {}
+          headers: {},
         })
       }
       setFiles([])
@@ -129,7 +139,9 @@ export function FileUpload() {
     <div className="space-y-6">
       <div
         className={`relative border-8 border-dashed transition-all p-12 text-center flex flex-col items-center justify-center gap-4 ${
-          dragActive ? 'border-primary bg-primary/5 scale-[0.99]' : 'border-primary/20 hover:border-primary/40'
+          dragActive
+            ? 'border-primary bg-primary/5 scale-[0.99]'
+            : 'border-primary/20 hover:border-primary/40'
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -158,29 +170,46 @@ export function FileUpload() {
       {zipping && (
         <div className="border-4 border-amber-500 bg-amber-500/10 p-4 flex items-center gap-3">
           <Loader2 className="animate-spin text-amber-500" size={24} />
-          <span className="font-black uppercase text-amber-500">Zipping: {zipping}...</span>
+          <span className="font-black uppercase text-amber-500">
+            Zipping: {zipping}...
+          </span>
         </div>
       )}
 
       {files.length > 0 && (
         <div className="border-4 border-primary bg-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <div className="bg-primary text-background p-4 border-b-4 border-primary flex justify-between items-center">
-            <h3 className="text-xl font-black uppercase italic tracking-tighter">Queue ({files.length})</h3>
-            <button onClick={() => setFiles([])} className="hover:scale-110 transition-transform">
+            <h3 className="text-xl font-black uppercase italic tracking-tighter">
+              Queue ({files.length})
+            </h3>
+            <button
+              onClick={() => setFiles([])}
+              className="hover:scale-110 transition-transform"
+            >
               <X size={24} strokeWidth={3} />
             </button>
           </div>
           <div className="p-4 max-h-64 overflow-y-auto space-y-2">
             {files.map(({ file, isFolder }, i) => (
-              <div key={i} className="flex items-center justify-between p-3 border-4 border-primary/10 hover:border-primary transition-colors bg-background">
+              <div
+                key={i}
+                className="flex items-center justify-between p-3 border-4 border-primary/10 hover:border-primary transition-colors bg-background"
+              >
                 <div className="flex items-center gap-3 overflow-hidden">
                   {isFolder ? (
-                    <FolderArchive className="shrink-0 text-amber-500" size={20} />
+                    <FolderArchive
+                      className="shrink-0 text-amber-500"
+                      size={20}
+                    />
                   ) : (
                     <FileIcon className="shrink-0" size={20} />
                   )}
-                  <span className="font-bold truncate uppercase text-sm">{file.name}</span>
-                  <span className="text-[10px] font-black opacity-40 uppercase">{(file.size / 1024 / 1024).toFixed(2)}MB</span>
+                  <span className="font-bold truncate uppercase text-sm">
+                    {file.name}
+                  </span>
+                  <span className="text-[10px] font-black opacity-40 uppercase">
+                    {(file.size / 1024 / 1024).toFixed(2)}MB
+                  </span>
                 </div>
                 <button
                   onClick={() => removeFile(i)}
@@ -193,17 +222,21 @@ export function FileUpload() {
           </div>
 
           <div className="p-4 border-t-4 border-primary/20 space-y-2">
-            <label className="text-xs font-black uppercase opacity-60">Expiration</label>
+            <label className="text-xs font-black uppercase opacity-60">
+              Expiration
+            </label>
             <div className="flex gap-1">
               {(['1h', '6h', '24h', '7d', 'never'] as const).map((opt) => (
                 <button
                   key={opt}
                   onClick={() => setExpiresIn(opt)}
                   className={`flex-1 py-2 text-sm font-black uppercase border-2 border-primary transition-all ${
-                    expiresIn === opt ? 'bg-primary text-background' : 'hover:bg-primary/10'
+                    expiresIn === opt
+                      ? 'bg-primary text-background'
+                      : 'hover:bg-primary/10'
                   }`}
                 >
-                  {opt === 'never' ? '∞' : opt}
+                  {opt}
                 </button>
               ))}
             </div>

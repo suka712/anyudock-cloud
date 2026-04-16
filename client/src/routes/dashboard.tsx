@@ -50,7 +50,7 @@ function CountdownBadge({ expiresAt }: { expiresAt: string }) {
   const expired = countdown === 'EXPIRED'
   return (
     <div
-      className={`px-2 py-1 text-[10px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1 ${
+      className={`px-2 py-1 text-[10px] font-black uppercase leading-none whitespace-nowrap shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] inline-flex items-center gap-1 ${
         expired ? 'bg-red-500 text-white' : 'bg-amber-500 text-black'
       }`}
     >
