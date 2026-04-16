@@ -1,79 +1,109 @@
-import { createRoute, useNavigate, Link } from '@tanstack/react-router'
-import { useState, type FormEvent } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { rootRoute } from './root'
-import { api, ApiError } from '@/lib/api'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Github, Cloud, Share2, Key, Users, ArrowRight, Mail } from 'lucide-react'
-import '../index.css'
+import { createRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { rootRoute } from "./root";
+import { api, ApiError } from "@/lib/api";
+import { authQueryOptions } from "@/lib/auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Github,
+  Cloud,
+  Share2,
+  Key,
+  Users,
+  ArrowRight,
+  Mail,
+  Loader2,
+} from "lucide-react";
+import "../index.css";
 
 const Index = () => {
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const [step, setStep] = useState<'email' | 'verify'>('email')
-  const [email, setEmail] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [step, setStep] = useState<"email" | "verify">("email");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  async function handleSendOtp(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const { data: user, isLoading: authLoading } = useQuery(authQueryOptions);
 
-    const formData = new FormData(e.currentTarget)
-    const emailInput = (formData.get('email') as string).trim()
+  const handleSendOtp = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const emailInput = (formData.get("email") as string).trim();
 
     try {
-      await api('/auth/send-otp', {
-        method: 'POST',
+      await api("/auth/send-otp", {
+        method: "POST",
         body: JSON.stringify({ email: emailInput }),
-      })
-      setEmail(emailInput)
-      setStep('verify')
+      });
+      setEmail(emailInput);
+      setStep("verify");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong')
+      setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  async function handleVerifyOtp(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const handleVerifyOtp = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const formData = new FormData(e.currentTarget)
-    const code = (formData.get('code') as string).trim()
+    const formData = new FormData(e.currentTarget);
+    const code = (formData.get("code") as string).trim();
 
     try {
-      await api('/auth/verify-otp', {
-        method: 'POST',
+      await api("/auth/verify-otp", {
+        method: "POST",
         body: JSON.stringify({ email, code }),
-      })
-      await queryClient.invalidateQueries({ queryKey: ['auth'] })
-      navigate({ to: '/dashboard' })
+      });
+      await queryClient.invalidateQueries({ queryKey: ["auth"] });
+      navigate({ to: "/dashboard" });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Invalid or expired code')
+      setError(
+        err instanceof ApiError ? err.message : "Invalid or expired code",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const contributors = ['Anh D Tran', 'Bush', 'khiem', 'suka712', 'Thai', 'Trinh Thu']
+  const contributors = [
+    "Anh D Tran",
+    "Bush",
+    "khiem",
+    "suka712",
+    "Thai",
+    "Trinh Thu",
+  ];
 
   return (
     <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-background">
       {/* Header */}
       <nav className="border-b-4 border-primary p-6 flex justify-between items-center bg-background sticky top-0 z-50">
-        <Link to="/" className="text-3xl font-black uppercase tracking-tighter italic border-3 border-primary pr-1">
+        <Link
+          to="/"
+          className="text-3xl font-black uppercase tracking-tighter italic border-3 border-primary pr-1"
+        >
           AnyuDock
         </Link>
-        <a 
-          href="https://github.com/suka712/anyudock-cloud" 
-          target="_blank" 
+        <a
+          href="https://github.com/suka712/anyudock-cloud"
+          target="_blank"
           rel="noopener noreferrer"
           className="hover:bg-primary hover:text-background p-2 transition-colors border-2 border-transparent hover:border-primary"
         >
@@ -89,33 +119,71 @@ const Index = () => {
               Simple S3 <br /> Storage.
             </h1>
             <p className="text-xl md:text-2xl font-medium border-l-8 border-primary pl-6 max-w-xl">
-              Share files and env configs between machines with zero friction. 
+              Share files and env configs between machines with zero friction.
               Brutalist by design, minimal by nature.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
-              <div className="bg-primary text-background px-4 py-2 text-lg font-bold">FAST</div>
-              <div className="border-4 border-primary px-4 py-2 text-lg font-bold">SECURE</div>
-              <div className="bg-primary text-background px-4 py-2 text-lg font-bold">RAW</div>
+              <div className="bg-primary text-background px-4 py-2 text-lg font-bold">
+                FAST
+              </div>
+              <div className="border-4 border-primary px-4 py-2 text-lg font-bold">
+                SECURE
+              </div>
+              <div className="bg-primary text-background px-4 py-2 text-lg font-bold">
+                RAW
+              </div>
             </div>
           </div>
 
           <div className="flex justify-center lg:justify-end">
             <Card className="w-full max-w-md rounded-none border-4 border-primary shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] bg-background overflow-hidden">
               <CardHeader className="bg-primary text-background border-b-4 border-primary">
-                <CardTitle className="text-3xl font-black uppercase italic tracking-tighter">
-                  {step === 'email' ? 'Access AnyuDock' : 'Verify Identity'}
+                <CardTitle className="text-4xl font-black uppercase italic tracking-tighter">
+                  Anyudock
                 </CardTitle>
                 <CardDescription className="text-background/80 font-bold">
-                  {step === 'email' 
-                    ? 'Enter your email to receive a verification code.' 
-                    : `We sent a 6-digit code to ${email}`}
+                  {user ? (
+                    `Welcome back`
+                  ) : step === "email" ? (
+                    "Enter your email to receive a verification code."
+                  ) : (
+                    `We sent a 6-digit code to ${email}`
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8">
-                {step === 'email' ? (
-                  <form onSubmit={handleSendOtp} className="flex flex-col gap-6">
+                {authLoading ? (
+                  <div className="flex justify-center p-8">
+                    <Loader2 className="animate-spin text-primary" size={48} />
+                  </div>
+                ) : user ? (
+                  <div className="flex flex-col justify-center">
+                    <Label htmlFor="email" className="text-lg font-black uppercase pb-2">
+                      Logged in as {user.email}
+                    </Label>
+                    <Button
+                      onClick={() => navigate({ to: "/dashboard" })}
+                      className="rounded-none border-4 border-primary bg-background text-primary hover:bg-primary hover:text-background transition-all p-8 text-2xl font-black uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.75 hover:translate-y-0.75"
+                    >
+                      GO TO DASHBOARD
+                      <ArrowRight className="ml-2" />
+                    </Button>
+                    <p className="text-sm font-black uppercase text-center text-muted-foreground italic pt-5">
+                      You are signed in.
+                    </p>
+                  </div>
+                ) : step === "email" ? (
+                  <form
+                    onSubmit={handleSendOtp}
+                    className="flex flex-col gap-6"
+                  >
                     <div className="flex flex-col gap-3">
-                      <Label htmlFor="email" className="text-lg font-black uppercase">Email Address</Label>
+                      <Label
+                        htmlFor="email"
+                        className="text-lg font-black uppercase"
+                      >
+                        Email Address
+                      </Label>
                       <div className="relative group">
                         <Input
                           id="email"
@@ -134,19 +202,27 @@ const Index = () => {
                         {error}
                       </p>
                     )}
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={loading}
                       className="rounded-none border-4 border-primary bg-background text-primary hover:bg-primary hover:text-background transition-all p-8 text-2xl font-black uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.75 hover:translate-y-0.75"
                     >
-                      {loading ? 'SENDING...' : 'GET CODE'}
+                      {loading ? "SENDING..." : "GET CODE"}
                       <ArrowRight className="ml-2" />
                     </Button>
                   </form>
                 ) : (
-                  <form onSubmit={handleVerifyOtp} className="flex flex-col gap-6">
+                  <form
+                    onSubmit={handleVerifyOtp}
+                    className="flex flex-col gap-6"
+                  >
                     <div className="flex flex-col gap-3">
-                      <Label htmlFor="code" className="text-lg font-black uppercase">Verification Code</Label>
+                      <Label
+                        htmlFor="code"
+                        className="text-lg font-black uppercase"
+                      >
+                        Verification Code
+                      </Label>
                       <Input
                         id="code"
                         name="code"
@@ -166,16 +242,19 @@ const Index = () => {
                       </p>
                     )}
                     <div className="flex flex-col gap-4">
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         disabled={loading}
                         className="rounded-none border-4 border-primary bg-background text-primary hover:bg-primary hover:text-background transition-all p-8 text-2xl font-black uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.75 hover:translate-y-0.75"
                       >
-                        {loading ? 'VERIFYING...' : 'LOG IN'}
+                        {loading ? "VERIFYING..." : "LOG IN"}
                       </Button>
-                      <button 
+                      <button
                         type="button"
-                        onClick={() => { setStep('email'); setError(''); }}
+                        onClick={() => {
+                          setStep("email");
+                          setError("");
+                        }}
                         className="text-sm font-black uppercase underline decoration-4 underline-offset-4 hover:text-muted-foreground transition-colors"
                       >
                         ← Back to email
@@ -190,15 +269,35 @@ const Index = () => {
 
         {/* Features Section */}
         <section className="p-6 md:p-20 border-b-4 border-primary bg-primary text-background">
-          <h2 className="text-4xl md:text-6xl font-black uppercase mb-12 italic">Features</h2>
+          <h2 className="text-4xl md:text-6xl font-black uppercase mb-12 italic">
+            Features
+          </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: Cloud, title: "S3 Integration", desc: "Effortless integration with any S3 provider. Your data, your rules." },
-              { icon: Share2, title: "Quick Sharing", desc: "Share your files with a simple, secure link. No tracking, no bullshit." },
-              { icon: Key, title: "Env Management", desc: "Distribute environment configs across systems in seconds." }
+              {
+                icon: Cloud,
+                title: "S3 Integration",
+                desc: "Effortless integration with any S3 provider. Your data, your rules.",
+              },
+              {
+                icon: Share2,
+                title: "Quick Sharing",
+                desc: "Share your files with a simple, secure link. No tracking, no bullshit.",
+              },
+              {
+                icon: Key,
+                title: "Env Management",
+                desc: "Distribute environment configs across systems in seconds.",
+              },
             ].map((f, i) => (
-              <div key={i} className="border-4 border-background p-8 space-y-4 hover:bg-background hover:text-primary transition-colors group">
-                <f.icon size={48} className="group-hover:scale-110 transition-transform" />
+              <div
+                key={i}
+                className="border-4 border-background p-8 space-y-4 hover:bg-background hover:text-primary transition-colors group"
+              >
+                <f.icon
+                  size={48}
+                  className="group-hover:scale-110 transition-transform"
+                />
                 <h3 className="text-2xl font-black uppercase">{f.title}</h3>
                 <p className="font-bold text-lg">{f.desc}</p>
               </div>
@@ -211,11 +310,13 @@ const Index = () => {
           <div className="absolute top-0 right-0 p-10 opacity-10 pointer-events-none text-primary">
             <Users size={400} />
           </div>
-          <h2 className="text-4xl md:text-6xl font-black uppercase mb-12 italic">The Squad</h2>
+          <h2 className="text-4xl md:text-6xl font-black uppercase mb-12 italic">
+            The Squad
+          </h2>
           <div className="flex flex-wrap gap-4">
             {contributors.map((name, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="border-4 border-primary px-8 py-4 text-xl font-black uppercase bg-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
               >
                 {name}
@@ -229,9 +330,9 @@ const Index = () => {
             <p className="text-2xl md:text-4xl font-black uppercase mb-8">
               Want to make AnyuDock better?
             </p>
-            <a 
-              href="https://github.com/anyudock/anyudock-cloud" 
-              target="_blank" 
+            <a
+              href="https://github.com/anyudock/anyudock-cloud"
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-block bg-primary text-background px-12 py-6 text-3xl font-black uppercase hover:bg-background hover:text-primary border-4 border-primary transition-all shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1.25 hover:translate-y-1.25"
             >
@@ -246,11 +347,11 @@ const Index = () => {
         AnyuDock Cloud © {new Date().getFullYear()} — Built for Speed.
       </footer>
     </div>
-  )
-}
+  );
+};
 
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: "/",
   component: Index,
-})
+});
