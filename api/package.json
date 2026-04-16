@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch --env-file=.env src/index.ts",
-    "start": "bun src/index.ts"
+    "start": "bun src/index.ts",
+    "cleanup": "bun src/scripts/cleanup.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.9",
