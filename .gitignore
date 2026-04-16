@@ -34,3 +34,11 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 CLAUDE.MD
+
+# local dev formatter preferences (not shared)
+.prettierrc
+.prettierrc.json
+.prettierrc.yaml
+.prettierrc.yml
+.prettierrc.js
+.prettierrc.cjs
