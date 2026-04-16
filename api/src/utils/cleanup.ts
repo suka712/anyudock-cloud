@@ -11,32 +11,25 @@ const credentials = {
   endpoint: env.S3_ENDPOINT,
 }
 
-async function cleanupExpiredFiles() {
-  try {
-    const expired = await db
-      .select()
-      .from(files)
-      .where(and(isNotNull(files.expiresAt), lte(files.expiresAt, new Date())))
+export async function cleanupExpiredFiles() {
+  const expired = await db
+    .select()
+    .from(files)
+    .where(and(isNotNull(files.expiresAt), lte(files.expiresAt, new Date())))
 
-    for (const file of expired) {
-      try {
-        await S3Client.delete(file.id, credentials)
-        await db.delete(files).where(eq(files.id, file.id))
-        console.log(`Cleaned up expired file: ${file.name} (${file.id})`)
-      } catch (e) {
-        console.error(`Failed to cleanup file ${file.id}:`, e)
-      }
+  for (const file of expired) {
+    try {
+      await S3Client.delete(file.id, credentials)
+      await db.delete(files).where(eq(files.id, file.id))
+      console.log(`Cleaned up expired file: ${file.name} (${file.id})`)
+    } catch (e) {
+      console.error(`Failed to cleanup file ${file.id}:`, e)
     }
-
-    if (expired.length > 0) {
-      console.log(`Cleanup complete: removed ${expired.length} expired file(s)`)
-    }
-  } catch (e) {
-    console.error('Cleanup interval error:', e)
   }
-}
 
-export function startCleanupInterval() {
-  setInterval(cleanupExpiredFiles, 15 * 60 * 1000)
-  cleanupExpiredFiles()
+  if (expired.length > 0) {
+    console.log(`Cleanup complete: removed ${expired.length} expired file(s)`)
+  }
+
+  return expired.length
 }

@@ -7,7 +7,6 @@ import { cors } from 'hono/cors'
 import { fileRouter } from './features/file/files.route.ts'
 import { getCookie } from 'hono/cookie'
 import { verify } from 'hono/jwt'
-import { startCleanupInterval } from './utils/cleanup.ts'
 
 const app = new Hono()
 
@@ -50,6 +49,5 @@ serve(
   },
   (info) => {
     console.log(`🍊 Server is running on port ${info.port}`)
-    startCleanupInterval()
   },
 )
