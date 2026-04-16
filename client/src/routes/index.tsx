@@ -68,7 +68,7 @@ const Index = () => {
     <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-background">
       {/* Header */}
       <nav className="border-b-4 border-primary p-6 flex justify-between items-center bg-background sticky top-0 z-50">
-        <Link to="/" className="text-2xl font-black uppercase tracking-tighter">
+        <Link to="/" className="text-3xl font-black uppercase tracking-tighter italic border-3 border-primary pr-1">
           AnyuDock
         </Link>
         <a 
