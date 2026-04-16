@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "storage_limit" integer DEFAULT 52428800 NOT NULL;

@@ -22,6 +22,13 @@
       "when": 1776282267032,
       "tag": "0002_flaky_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776327786836,
+      "tag": "0003_parallel_mandrill",
+      "breakpoints": true
     }
   ]
 }

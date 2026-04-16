@@ -3,8 +3,8 @@ import { env } from "../../utils/env.ts";
 import { S3Client } from "bun";
 import { authMiddleware } from "../../middlewares/auth.middleware.ts";
 import { db } from "../../db/index.ts";
-import { files, shareLinks } from "../../db/schema.ts";
-import { eq } from "drizzle-orm";
+import { files, shareLinks, users } from "../../db/schema.ts";
+import { eq, sum } from "drizzle-orm";
 
 const credentials = {
   accessKeyId: env.S3_ACCESS_KEY_ID,
@@ -17,12 +17,39 @@ export const fileRouter = new Hono()
 
 fileRouter.post('/', authMiddleware, async (c) => {
   try {
+    const userId = c.get('user').sub
     const formData = await c.req.formData()
     const file = formData.get('file') as File
     const fileName = formData.get('fileName') as string;
 
+
+    // Fetch user's limit and current usage
+    const [userStats] = await db
+      .select({
+        limit: users.storageLimit,
+        currentTotal: sum(files.size)
+      })
+      .from(users)
+      .leftJoin(files, eq(users.id, files.userId))
+      .where(eq(users.id, userId))
+      .groupBy(users.id)
+
+    if (!userStats) {
+      return c.json({ error: 'User not found' }, 404)
+    }
+
+    const currentTotal = Number(userStats.currentTotal || 0)
+    const storageLimit = Number(userStats.limit)
+
+    if (currentTotal + file.size > storageLimit) {
+      const remaining = Math.max(0, storageLimit - currentTotal)
+      return c.json({ 
+        error: `Storage limit exceeded. Used: ${(currentTotal / 1024 / 1024).toFixed(2)}MB. Limit: ${(storageLimit / 1024 / 1024).toFixed(2)}MB. Remaining: ${(remaining / 1024 / 1024).toFixed(2)}MB.` 
+      }, 400)
+    }
+
     const [{ id }] = await db.insert(files).values({
-      userId: c.get('user').sub,
+      userId,
       name: fileName,
       size: file.size,
       mimeType: file.type,

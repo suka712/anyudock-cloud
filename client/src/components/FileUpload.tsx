@@ -20,19 +20,35 @@ export function FileUpload() {
     }
   }, [])
 
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB individual file limit
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)])
+    if (e.dataTransfer.files) {
+      const newFiles = Array.from(e.dataTransfer.files).filter(file => {
+        if (file.size > MAX_FILE_SIZE) {
+          alert(`File "${file.name}" is too large. Max size is 50MB.`)
+          return false
+        }
+        return true
+      })
+      setFiles(prev => [...prev, ...newFiles])
     }
   }, [])
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault()
-    if (e.target.files && e.target.files[0]) {
-      setFiles(prev => [...prev, ...Array.from(e.target.files!)])
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files).filter(file => {
+        if (file.size > MAX_FILE_SIZE) {
+          alert(`File "${file.name}" is too large. Max size is 50MB.`)
+          return false
+        }
+        return true
+      })
+      setFiles(prev => [...prev, ...newFiles])
     }
   }, [])
 
@@ -51,7 +67,6 @@ export function FileUpload() {
         await api('/file', {
           method: 'POST',
           body: formData,
-          // Remove default Content-Type header so fetch sets it automatically with boundary
           headers: {} 
         })
       }
@@ -59,7 +74,11 @@ export function FileUpload() {
       await queryClient.invalidateQueries({ queryKey: ['files'] })
     } catch (error) {
       console.error('Upload failed:', error)
-      alert('Upload failed. Please try again.')
+      if (error instanceof Error) {
+        alert(`Upload failed: ${error.message}`)
+      } else {
+        alert('Upload failed. Please try again.')
+      }
     } finally {
       setUploading(false)
     }

@@ -232,7 +232,9 @@ const Dashboard = () => {
             <div className="flex flex-wrap gap-4">
               <div className="border-4 border-primary px-6 py-2 bg-primary text-background flex items-center gap-3">
                 <HardDrive size={24} strokeWidth={3} />
-                <span className="text-xl font-black uppercase">{formatSize(totalSize)} USED</span>
+                <span className="text-xl font-black uppercase">
+                  {formatSize(totalSize)} / 50 MB
+                </span>
               </div>
               <div className="border-4 border-primary px-6 py-2 flex items-center gap-3">
                 <Clock size={24} strokeWidth={3} />
@@ -458,8 +460,8 @@ const Dashboard = () => {
               <div className="text-xs font-black uppercase opacity-60">FILES</div>
             </div>
             <div>
-              <div className="text-4xl font-black italic">{formatSize(totalSize)}</div>
-              <div className="text-xs font-black uppercase opacity-60">STORAGE</div>
+              <div className="text-4xl font-black italic">{formatSize(totalSize)} / 50 MB</div>
+              <div className="text-xs font-black uppercase opacity-60">STORAGE ALLOCATION</div>
             </div>
           </div>
         </div>
