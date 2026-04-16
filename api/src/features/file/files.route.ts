@@ -13,6 +13,13 @@ const credentials = {
   endpoint: env.S3_ENDPOINT
 }
 
+const DURATIONS: Record<string, number> = {
+  '1h': 3_600_000,
+  '6h': 21_600_000,
+  '24h': 86_400_000,
+  '7d': 604_800_000,
+}
+
 export const fileRouter = new Hono()
 
 fileRouter.post('/', authMiddleware, async (c) => {
@@ -21,7 +28,12 @@ fileRouter.post('/', authMiddleware, async (c) => {
     const formData = await c.req.formData()
     const file = formData.get('file') as File
     const fileName = formData.get('fileName') as string;
+    const expiresIn = formData.get('expiresIn') as string | null
 
+    const expiresAt =
+      expiresIn && expiresIn !== 'never' && DURATIONS[expiresIn]
+        ? new Date(Date.now() + DURATIONS[expiresIn])
+        : null
 
     // Fetch user's limit and current usage
     const [userStats] = await db
@@ -53,6 +65,7 @@ fileRouter.post('/', authMiddleware, async (c) => {
       name: fileName,
       size: file.size,
       mimeType: file.type,
+      expiresAt,
     }).returning()
 
     await S3Client.write(id, await file.arrayBuffer(), {
@@ -81,6 +94,16 @@ fileRouter.get('/shared/:token', async (c) => {
 
     if (link.expiresAt && link.expiresAt < new Date()) {
       return c.json({ error: 'Link expired' }, 403)
+    }
+
+    const [file] = await db.select().from(files).where(eq(files.id, link.fileId))
+
+    if (!file) {
+      return c.json({ error: 'File not found' }, 404)
+    }
+
+    if (file.expiresAt && file.expiresAt < new Date()) {
+      return c.json({ error: 'File has expired' }, 410)
     }
 
     const url = S3Client.presign(link.fileId, credentials)
@@ -125,6 +148,10 @@ fileRouter.get('/:key/view', authMiddleware, async (c) => {
       return c.json({ error: 'User not authorized' }, 403)
     }
 
+    if (file.expiresAt && file.expiresAt < new Date()) {
+      return c.json({ error: 'File has expired' }, 410)
+    }
+
     const url = S3Client.presign(key, credentials)
     return c.redirect(url)
   } catch (e) {
@@ -146,6 +173,10 @@ fileRouter.get('/:key/download', async (c) => {
 
     if (file.isPrivate) {
       return c.json({ error: 'File is private. Cannot download' }, 403)
+    }
+
+    if (file.expiresAt && file.expiresAt < new Date()) {
+      return c.json({ error: 'File has expired' }, 410)
     }
 
     const url = S3Client.presign(key, credentials)
