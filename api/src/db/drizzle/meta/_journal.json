@@ -29,6 +29,13 @@
       "when": 1776327786836,
       "tag": "0003_parallel_mandrill",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776358013733,
+      "tag": "0004_sloppy_patriot",
+      "breakpoints": true
     }
   ]
 }
