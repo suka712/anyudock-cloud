@@ -5,8 +5,6 @@ import { healthRouter } from './features/health/health.route.ts'
 import { authRouter } from './features/auth/auth.route.ts'
 import { cors } from 'hono/cors'
 import { fileRouter } from './features/file/files.route.ts'
-import { getCookie } from 'hono/cookie'
-import { verify } from 'hono/jwt'
 
 const app = new Hono()
 
