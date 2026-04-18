@@ -18,26 +18,6 @@ app.use(
   }),
 )
 
-app.get('/', async (c) => {
-  const token = getCookie(c, 'session')
-  if (token) {
-    try {
-      const payload = await verify(token, env.JWT_SECRET, 'HS256')
-      return c.json({
-        message: 'Welcome to AnyuDock API',
-        user: { id: payload.sub, email: payload.email },
-        dashboard: `${env.ALLOWED_ORIGINS.split(',')[0]}/dashboard`,
-      })
-    } catch {
-      // Invalid token, fall through
-    }
-  }
-  return c.json({
-    message: 'AnyuDock API',
-    login: `${env.ALLOWED_ORIGINS.split(',')[0]}/`,
-  })
-})
-
 app.route('/health', healthRouter)
 app.route('/auth', authRouter)
 app.route('/file', fileRouter)
