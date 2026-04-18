@@ -20,6 +20,8 @@ app.route('/health', healthRouter)
 app.route('/auth', authRouter)
 app.route('/file', fileRouter)
 
+console.log('Routes successfully registered')
+
 serve(
   {
     fetch: app.fetch,
